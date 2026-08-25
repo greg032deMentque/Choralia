@@ -1,0 +1,122 @@
+<div class="page song-list">
+  <app-page-header title="Chants">
+    @if (canManage()) {
+      <button type="button" class="btn btn-primary" (click)="openCreateForm()">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter un chant
+      </button>
+    }
+  </app-page-header>
+
+  @if (showForm()) {
+    <div class="mb-4">
+      <app-song-form [song]="editingSong()" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
+    </div>
+  }
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [pageSizeSelectable]="true"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    [filterPanel]="true"
+    [activeFilters]="activeFilters()"
+    [emptyIcon]="IconNameEnum.MusicNotes"
+    [emptyActionLabel]="canManage() ? 'Ajouter un chant' : null"
+    emptyMessage="Aucun chant au répertoire pour le moment."
+    noResultsMessage="Aucun chant ne correspond à ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterTextChange($event)"
+    (filterRemove)="onFilterRemove($event)"
+    (rowClick)="openSong($event)"
+    (emptyAction)="openCreateForm()"
+  >
+    <div data-table-filters class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label" for="filter-song-status">Statut</label>
+        <select id="filter-song-status" class="form-select" (change)="onStatusFilterChange($any($event.target).value)">
+          <option value="">Tous les statuts</option>
+          @for (status of allStatuss; track status) {
+            <option [value]="status" [selected]="statusFilter() === status">{{ getSongStatusLabel(status) }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="filter-song-voice">Voix</label>
+        <select id="filter-song-voice" class="form-select" (change)="onVoicePartFilterChange($any($event.target).value)">
+          <option value="">Toutes les voix</option>
+          @for (voicePart of allVoicePart; track voicePart) {
+            <option [value]="voicePart" [selected]="voicePartFilter() === voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="filter-song-priority">Priorité</label>
+        <select id="filter-song-priority" class="form-select" (change)="onPriorityFilterChange($any($event.target).value)">
+          <option value="">Toute priorité</option>
+          @for (priority of allPrioritys; track priority) {
+            <option [value]="priority" [selected]="priorityFilter() === priority">{{ getPrioritySongLabel(priority) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </app-data-table>
+</div>
+
+<ng-template #tplTitle let-song>
+  <a
+    [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Songs, song.Id]"
+    (click)="$event.stopPropagation()"
+    >{{ song.Title }}</a
+  >
+</ng-template>
+
+<ng-template #tplVoiceParts let-song>
+  {{ song.VoiceParts.length === 0 ? '—' : getVoicePartsLabel(song.VoiceParts) }}
+</ng-template>
+
+<ng-template #tplStatus let-song>
+  <span
+    class="status-badge"
+    [class.status-badge--published]="song.Status === SongStatusEnum.Active"
+    [class.status-badge--archived]="song.Status === SongStatusEnum.Archived"
+  >
+    {{ getSongStatusLabel(song.Status) }}
+  </span>
+</ng-template>
+
+<ng-template #tplPriority let-song>
+  {{ song.Priority === null ? '—' : getPrioritySongLabel(song.Priority) }}
+</ng-template>
+
+<ng-template #tplCompleteness let-song>
+  @if (song.IsCompleteForChoir) {
+    <span class="status-badge status-badge--published">Complet</span>
+  } @else {
+    <span class="status-badge status-badge--pending" [title]="'Voix manquantes : ' + missingVoicePartLabel(song)">Incomplet</span>
+  }
+</ng-template>
+
+<!-- stopPropagation : la ligne entière ouvre la fiche, les actions ne doivent pas la
+     déclencher au passage. -->
+<ng-template #tplActions let-song>
+  @if (canManage()) {
+    <div class="song-list__actions">
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); openEditForm(song)" aria-label="Modifier">
+        <app-icon [name]="IconNameEnum.Pencil" size="dense" />
+      </button>
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); archiveSong(song)" aria-label="Archiver">
+        <app-icon [name]="IconNameEnum.Archive" size="dense" />
+      </button>
+    </div>
+  }
+</ng-template>

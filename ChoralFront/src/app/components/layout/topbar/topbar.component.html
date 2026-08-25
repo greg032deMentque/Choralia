@@ -1,0 +1,95 @@
+<header class="topbar">
+  <!-- Ouvre le tiroir de navigation sous 1024 px. Masqué au-dessus, où la barre latérale est
+       toujours visible. `list` (Phosphor) est l'icône de menu du catalogue. -->
+  <button
+    type="button"
+    class="topbar__nav-toggle btn-icon"
+    (click)="onToggleNav()"
+    [attr.aria-expanded]="navOpen()"
+    [attr.aria-label]="navOpen() ? 'Fermer la navigation' : 'Ouvrir la navigation'"
+  >
+    <app-icon [name]="IconNameEnum.List" size="nav" />
+  </button>
+
+  <div class="topbar__chorale-selector">
+    @if (showSelector()) {
+      <button type="button" class="topbar__selector-btn" (click)="toggleSpaceMenu()" [attr.aria-expanded]="isSpaceMenuOpen()">
+        <app-icon [name]="IconNameEnum.Buildings" size="inline" />
+        <span class="topbar__selector-label">{{ activeSpaceName() }}</span>
+        <app-icon [name]="IconNameEnum.CaretDown" size="dense" />
+      </button>
+
+      @if (isSpaceMenuOpen()) {
+        <div class="topbar__dropdown" role="menu">
+          @if (hasClientGroup()) {
+            <div class="topbar__dropdown-label" role="presentation">Ma structure</div>
+            @for (client of clientRoles(); track client.ClientId) {
+              <button
+                type="button"
+                class="topbar__dropdown-item"
+                role="menuitem"
+                [class.topbar__dropdown-item--active]="isClientActive(client)"
+                (click)="selectClient(client)"
+              >
+                {{ client.Name }}
+              </button>
+            }
+          }
+          @if (hasClientGroup() && hasSpaceGroup()) {
+            <div class="topbar__dropdown-separator" role="separator"></div>
+          }
+          @if (choirSpaces().length > 0) {
+            <div class="topbar__dropdown-label" role="presentation">Chorales</div>
+            @for (space of choirSpaces(); track space.SpaceId) {
+              <button
+                type="button"
+                class="topbar__dropdown-item"
+                role="menuitem"
+                [class.topbar__dropdown-item--active]="isSpaceActive(space)"
+                (click)="selectSpace(space)"
+              >
+                {{ space.Name }}
+              </button>
+            }
+          }
+          @if (choirSpaces().length > 0 && eventSpaces().length > 0) {
+            <div class="topbar__dropdown-separator" role="separator"></div>
+          }
+          @if (eventSpaces().length > 0) {
+            <div class="topbar__dropdown-label" role="presentation">Événements</div>
+            @for (space of eventSpaces(); track space.SpaceId) {
+              <button
+                type="button"
+                class="topbar__dropdown-item"
+                role="menuitem"
+                [class.topbar__dropdown-item--active]="isSpaceActive(space)"
+                (click)="selectSpace(space)"
+              >
+                {{ space.Name }}
+              </button>
+            }
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <div class="topbar__spacer"></div>
+
+  <div class="topbar__user-menu">
+    <button type="button" class="topbar__user-btn" (click)="toggleUserMenu()" [attr.aria-expanded]="isUserMenuOpen()">
+      <span class="topbar__avatar">{{ userInitials() }}</span>
+      <span class="topbar__user-name">{{ user()?.Firstname }} {{ user()?.Lastname }}</span>
+      <app-icon [name]="IconNameEnum.CaretDown" size="dense" />
+    </button>
+
+    @if (isUserMenuOpen()) {
+      <div class="topbar__dropdown" role="menu">
+        <button type="button" class="topbar__dropdown-item" role="menuitem" (click)="logout()">
+          <app-icon [name]="IconNameEnum.ArrowRight" size="dense" />
+          Se déconnecter
+        </button>
+      </div>
+    }
+  </div>
+</header>

@@ -1,0 +1,138 @@
+<div class="page member-list">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="member-list__title">Membres</h1>
+    @if (isManager() && activeTab() === 'members') {
+      <button type="button" class="btn btn-primary" (click)="toggleInviteForm()">
+        <app-icon [name]="IconNameEnum.UserPlus" size="dense" [ariaLabel]="null" />
+        Inviter un membre
+      </button>
+    }
+  </div>
+
+  <!-- L'invité reçoit un email portant un lien de création de mot de passe ; le suivre vaut
+       confirmation de son inscription (AccountService.ResetPassword). Il apparaît en statut
+       « Invité » dans la liste jusque-là (11-ux-ui §6.4). -->
+  @if (showInviteForm()) {
+    <form [formGroup]="inviteForm" novalidate class="member-list__invite d-flex flex-column gap-3 mb-4">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <app-form-field label="Email" [required]="true">
+            <input type="email" class="form-control" formControlName="email" placeholder="email@exemple.fr" />
+          </app-form-field>
+        </div>
+        <div class="col-md-3">
+          <app-form-field label="Prénom">
+            <input type="text" class="form-control" formControlName="firstname" />
+          </app-form-field>
+        </div>
+        <div class="col-md-3">
+          <app-form-field label="Nom">
+            <input type="text" class="form-control" formControlName="lastname" />
+          </app-form-field>
+        </div>
+        <div class="col-md-2">
+          <app-form-field label="Voix" [required]="true">
+            <select class="form-select" formControlName="primaryVoicePart">
+              <option [ngValue]="null">Choisir...</option>
+              @for (voicePart of allVoiceParts; track voicePart) {
+                <option [ngValue]="voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+              }
+            </select>
+          </app-form-field>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary align-self-start" [appSubmitOnce]="submitInvite">
+          Envoyer l'invitation
+        </button>
+        <button type="button" class="btn btn-outline-secondary align-self-start" (click)="toggleInviteForm()">
+          Annuler
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (isManager()) {
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab() === 'members'" (click)="selectTab('members')">
+          Membres
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab() === 'demandes'" (click)="selectTab('demandes')">
+          Demandes
+          @if (pendingRequestsCount() > 0) {
+            <span class="badge text-bg-danger ms-1">{{ pendingRequestsCount() }}</span>
+          }
+        </button>
+      </li>
+    </ul>
+  }
+
+  @if (activeTab() === 'demandes' && isManager()) {
+    <app-membership-requests-list />
+  }
+
+  @if (activeTab() === 'members') {
+  <div class="row g-2 mb-3">
+    <div class="col-md-4">
+      <input
+        type="search"
+        class="form-control"
+        placeholder="Rechercher un membre..."
+        [value]="filterText()"
+        (input)="onFilterTextChange($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="error()" [empty]="items().length === 0" emptyMessage="Aucun membre trouvé.">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <!-- Valeurs de la liste blanche de tri de ChoirMembersService (Name = nom de
+                 famille, Email, Status) : toute autre valeur est ignorée en silence par le
+                 back et le tableau reste dans l'ordre par défaut. -->
+            <th role="button" tabindex="0" (click)="onSort('Name')" (keydown.enter)="onSort('Name')">Nom</th>
+            <th role="button" tabindex="0" (click)="onSort('Email')" (keydown.enter)="onSort('Email')">Email</th>
+            <th>Pupitre</th>
+            <th>Rôles</th>
+            <th role="button" tabindex="0" (click)="onSort('Status')" (keydown.enter)="onSort('Status')">Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (member of items(); track member.Id) {
+            <tr>
+              <td>{{ member.UserFullName ?? '—' }}</td>
+              <td>{{ member.UserEmail ?? '—' }}</td>
+              <td>{{ member.SectionVoicePart === null ? '—' : getVoicePartLabel(member.SectionVoicePart) }}</td>
+              <td>{{ member.Roles.length === 0 ? '—' : getUserRolesLabel(member.Roles) }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.text-bg-warning]="member.Status === MemberStatusEnum.Invited"
+                  [class.text-bg-success]="member.Status === MemberStatusEnum.Active"
+                  [class.text-bg-secondary]="member.Status === MemberStatusEnum.Inactive"
+                  [class.text-bg-dark]="member.Status === MemberStatusEnum.Archived"
+                >
+                  {{ getMemberStatusLabel(member.Status) }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+  [page]="page()"
+  [totalPages]="totalPages()"
+  [totalCount]="totalCount()"
+  ariaLabel="Pagination des membres"
+  (pageChange)="goToPage($event)"
+/>
+  </app-data-state>
+  }
+</div>

@@ -1,0 +1,22 @@
+<div class="shell" [class.shell--nav-open]="mobileNavOpen()">
+  <app-sidebar
+    [collapsed]="sidebarCollapsed()"
+    [mobileOpen]="mobileNavOpen()"
+    (toggleCollapse)="toggleSidebar()"
+    (closeRequested)="closeMobileNav()"
+  />
+
+  <!-- Voile du tiroir : n'existe que sous 1024 px, quand la barre latérale se superpose au
+       contenu. Cliquable pour fermer, et masqué aux lecteurs d'écran (la fermeture au clavier
+       passe par Échap). -->
+  @if (mobileNavOpen()) {
+    <div class="shell__backdrop" (click)="closeMobileNav()" aria-hidden="true"></div>
+  }
+
+  <div class="shell__main" [attr.inert]="mobileNavOpen() ? '' : null" [attr.aria-hidden]="mobileNavOpen() ? true : null">
+    <app-topbar [navOpen]="mobileNavOpen()" (toggleNav)="toggleMobileNav()" />
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

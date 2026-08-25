@@ -1,0 +1,17 @@
+// Le gabarit de page vient de `.page` (styles.scss), le titre de `PageHeaderComponent`.
+
+// Jusqu'à six actions par ligne selon le statut : elles s'enroulent plutôt que d'élargir le
+// tableau, et se regroupent à gauche en rendu carte.
+.recording-list__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .recording-list__actions {
+    justify-content: flex-start;
+  }
+}

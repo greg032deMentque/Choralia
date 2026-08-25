@@ -1,0 +1,59 @@
+@if (variant() === 'overlay') {
+  @if (error()) {
+    <div class="data-state data-state--error" role="alert" aria-live="assertive">
+      <app-icon [name]="IconNameEnum.WifiSlash" size="empty-state" [ariaLabel]="'Erreur'" />
+      <p class="data-state__message">{{ error() }}</p>
+      @if (retryLabel()) {
+        <button type="button" class="btn btn-outline-primary" (click)="onRetry()">{{ retryLabel() }}</button>
+      }
+    </div>
+  } @else if (empty() && !loading()) {
+    <div class="data-state data-state--empty">
+      <app-icon [name]="emptyIcon()" size="empty-state" [ariaLabel]="'Aucun résultat'" />
+      <p class="data-state__message">{{ emptyMessage() }}</p>
+      @if (emptyActionLabel()) {
+        <button type="button" class="btn btn-primary" (click)="onEmptyAction()">{{ emptyActionLabel() }}</button>
+      }
+    </div>
+  } @else {
+    <div class="data-state__overlay-wrapper">
+      @if (loading()) {
+        <div class="data-state__overlay" role="status" aria-live="polite" aria-busy="true">
+          <span class="data-state__spinner" aria-hidden="true"></span>
+        </div>
+      }
+      <ng-content />
+    </div>
+  }
+} @else if (loading()) {
+  @if (variant() === 'spinner') {
+    <div class="data-state data-state--spinner" role="status" aria-live="polite" aria-busy="true">
+      <span class="data-state__spinner" aria-hidden="true"></span>
+      <p class="data-state__message">Chargement en cours…</p>
+    </div>
+  } @else {
+    <div class="data-state data-state--loading" role="status" aria-live="polite">
+      @for (row of skeletonArray(); track $index) {
+        <div class="data-state__skeleton-row"></div>
+      }
+    </div>
+  }
+} @else if (error()) {
+  <div class="data-state data-state--error" role="alert" aria-live="assertive">
+    <app-icon [name]="IconNameEnum.WifiSlash" size="empty-state" [ariaLabel]="'Erreur'" />
+    <p class="data-state__message">{{ error() }}</p>
+    @if (retryLabel()) {
+      <button type="button" class="btn btn-outline-primary" (click)="onRetry()">{{ retryLabel() }}</button>
+    }
+  </div>
+} @else if (empty()) {
+  <div class="data-state data-state--empty">
+    <app-icon [name]="emptyIcon()" size="empty-state" [ariaLabel]="'Aucun résultat'" />
+    <p class="data-state__message">{{ emptyMessage() }}</p>
+    @if (emptyActionLabel()) {
+      <button type="button" class="btn btn-primary" (click)="onEmptyAction()">{{ emptyActionLabel() }}</button>
+    }
+  </div>
+} @else {
+  <ng-content />
+}

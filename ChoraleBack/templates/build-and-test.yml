@@ -1,0 +1,100 @@
+# Etapes de compilation, de controle et de test du back, PARTAGEES par :
+#   - azure-pipelines.staging.yml (branche dev)    -> artefact seul, aucun deploiement
+#   - azure-pipelines.prod.yml    (branche master) -> artefact + deploiement
+# Toute evolution du build se fait ici : c'est le seul moyen de garantir que ce qui est
+# valide sur dev est exactement ce qui part en production.
+
+parameters:
+  - name: buildConfiguration
+    type: string
+    default: Release
+  - name: dotnetVersion
+    type: string
+    default: '10.x'
+  - name: publishArtifact
+    type: boolean
+    default: false
+  - name: artifactName
+    type: string
+    default: 'chorale-api'
+
+steps:
+
+  # Garde-fou amont : aucun fichier de configuration local ne doit etre versionne. Le
+  # .gitignore les exclut, mais un `git add -f` suffirait a passer outre — et ces fichiers
+  # portent les secrets de developpement. Echouer ici coute une minute ; s'en apercevoir
+  # apres publication du depot vitrine coute une rotation de tous les secrets.
+  - script: |
+      trouves=$(find . -path ./node_modules -prune -o \( \
+        -name 'appsettings.Development.json' -o \
+        -name 'appsettings.Staging.json' -o \
+        -name 'appsettings.Production.json' -o \
+        -name 'appsettings.Local.json' \) -print)
+      if [ -n "$trouves" ]; then
+        echo "##vso[task.logissue type=error]Configuration locale versionnee :"
+        echo "$trouves"
+        exit 1
+      fi
+      echo "Aucun fichier de configuration local dans le depot."
+    displayName: Garde-fou · aucune configuration locale versionnee
+
+  - task: UseDotNet@2
+    displayName: Use .NET ${{ parameters.dotnetVersion }}
+    inputs:
+      version: ${{ parameters.dotnetVersion }}
+      includePreviewVersions: false
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: 'ChoraleBack/**/*.csproj'
+
+  # `--include-transitive` fait planter le SDK 10 (NullReferenceException) : on s'en passe,
+  # au prix d'une couverture limitee aux dependances directes. Le point important est le
+  # premier test ci-dessous : si la commande n'a pas pu s'executer, on ECHOUE. Sans lui, un
+  # plantage produirait une sortie sans « High » ni « Critical », donc un build vert — un
+  # garde-fou incapable d'echouer donne une confiance qu'il ne merite pas.
+  - script: |
+      sortie=$(dotnet list ChoraleBack/Chorale.Api/ChoraleBackEnd.Api.csproj package --vulnerable 2>&1) || true
+      echo "$sortie"
+      if echo "$sortie" | grep -qiE '(^|[^a-z])error'; then
+        echo "##vso[task.logissue type=error]La verification des paquets vulnerables n'a pas pu s'executer."
+        exit 1
+      fi
+      if echo "$sortie" | grep -qE '(High|Critical)'; then
+        echo "##vso[task.logissue type=error]Paquets NuGet vulnerables High/Critical detectes."
+        exit 1
+      fi
+      echo "Aucun paquet vulnerable High/Critical."
+    displayName: Audit NuGet · bloquant High/Critical
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: 'ChoraleBack/**/*.csproj'
+      arguments: '--configuration ${{ parameters.buildConfiguration }} --no-restore'
+
+  - task: DotNetCoreCLI@2
+    displayName: Test
+    inputs:
+      command: test
+      projects: 'ChoraleBack/Chorale.Test/*.csproj'
+      arguments: '--configuration ${{ parameters.buildConfiguration }} --no-build --collect:"XPlat Code Coverage"'
+
+  - ${{ if eq(parameters.publishArtifact, true) }}:
+    - task: DotNetCoreCLI@2
+      displayName: Publish
+      inputs:
+        command: publish
+        publishWebProjects: false
+        projects: 'ChoraleBack/Chorale.Api/*.csproj'
+        arguments: '--configuration ${{ parameters.buildConfiguration }} --no-build --output $(Build.ArtifactStagingDirectory)/api'
+        zipAfterPublish: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publier l'artefact ${{ parameters.artifactName }}
+      inputs:
+        targetPath: $(Build.ArtifactStagingDirectory)/api
+        artifact: ${{ parameters.artifactName }}

@@ -1,0 +1,177 @@
+<div class="page user-detail">
+  <a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminUsers]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux utilisateurs
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error() && !detail() ? error() : null" [empty]="!detail()" emptyMessage="Utilisateur introuvable." variant="spinner">
+    @if (detail(); as detail) {
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">{{ error() }}</div>
+      }
+
+      <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+          @if (!editingIdentity()) {
+            <h1 class="user-detail__title">{{ detail.Firstname }} {{ detail.Lastname }}</h1>
+            <div class="text-muted">{{ detail.Email }}</div>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              <span class="badge" [class.text-bg-success]="detail.IsActive" [class.text-bg-secondary]="!detail.IsActive">
+                {{ detail.IsActive ? 'Compte actif' : 'Compte inactif' }}
+              </span>
+              @if (detail.IsGuestAccount) {
+                <span class="badge text-bg-info">Invitation en attente</span>
+              }
+            </div>
+            <div class="text-muted small mt-2">
+              Créé le {{ detail.CreatedAt | date: 'short' }}
+              — Dernière connexion : {{ detail.LastConnection ? (detail.LastConnection | date: 'short') : 'jamais' }}
+              — Dernière activité : {{ detail.LastActive ? (detail.LastActive | date: 'short') : 'jamais' }}
+            </div>
+          } @else {
+            <h1 class="user-detail__title">Modifier l'identité</h1>
+          }
+        </div>
+
+        @if (!editingIdentity()) {
+          <div class="d-flex flex-wrap align-items-start gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEditIdentity()">
+              <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="'Modifier'" />
+              Modifier l'identité
+            </button>
+            <button type="button" class="btn btn-outline-warning btn-sm" [appSubmitOnce]="toggleActive">
+              <app-icon [name]="detail.IsActive ? IconNameEnum.XSquare : IconNameEnum.CheckSquare" size="dense" [ariaLabel]="null" />
+              {{ detail.IsActive ? 'Désactiver' : 'Réactiver' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" [appSubmitOnce]="resetPasswordAction">
+              <app-icon [name]="IconNameEnum.Lock" size="dense" [ariaLabel]="null" />
+              Réinitialiser le mot de passe
+            </button>
+            @if (detail.IsGuestAccount) {
+              <button type="button" class="btn btn-outline-secondary btn-sm" [appSubmitOnce]="resendInvitationAction">
+                <app-icon [name]="IconNameEnum.UserPlus" size="dense" [ariaLabel]="null" />
+                Renvoyer l'invitation
+              </button>
+            }
+            <button type="button" class="btn btn-outline-danger btn-sm" [appSubmitOnce]="deleteAction">
+              <app-icon [name]="IconNameEnum.Trash" size="dense" [ariaLabel]="'Supprimer'" />
+              Supprimer
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (editingIdentity()) {
+        <form [formGroup]="form" class="user-detail__form mb-4">
+          <app-form-field label="Prénom" [required]="true">
+            <input type="text" class="form-control" formControlName="firstname" />
+          </app-form-field>
+          <app-form-field label="Nom" [required]="true">
+            <input type="text" class="form-control" formControlName="lastname" />
+          </app-form-field>
+          <app-form-field label="Email" [required]="true">
+            <input type="email" class="form-control" formControlName="email" />
+          </app-form-field>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" [appSubmitOnce]="submitIdentity">Enregistrer</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="cancelEditIdentity()">Annuler</button>
+          </div>
+        </form>
+      }
+
+      <section class="mb-4">
+        <h2 class="user-detail__section-title">Chorales ({{ detail.Choirs.length }})</h2>
+        @if (detail.Choirs.length === 0) {
+          <p class="text-muted">Aucun rattachement à une chorale.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Chorale</th>
+                  <th>Rôle(s)</th>
+                  <th>Voix</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (choir of detail.Choirs; track choir.Id) {
+                  <tr>
+                    <td>{{ choir.ChoirName }}</td>
+                    <td>{{ choir.Roles.length === 0 ? '—' : getUserRolesLabel(choir.Roles) }}</td>
+                    <td>{{ choir.PrimaryVoicePart === null ? '—' : getVoicePartLabel(choir.PrimaryVoicePart) }}</td>
+                    <td>{{ getMemberStatusLabel(choir.Status) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <section class="mb-4">
+        <h2 class="user-detail__section-title">Événements ({{ detail.Events.length }})</h2>
+        @if (detail.Events.length === 0) {
+          <p class="text-muted">Aucune participation à un événement.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Événement</th>
+                  <th>Date</th>
+                  <th>Chorale porteuse</th>
+                  <th>Rôle</th>
+                  <th>Présence</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (evt of detail.Events; track evt.Id) {
+                  <tr>
+                    <td>{{ evt.EventTitle }}</td>
+                    <td>{{ evt.EventStartDate | date: 'medium' }}</td>
+                    <td>
+                      @if (evt.ChoirName) {
+                        {{ evt.ChoirName }}
+                      } @else {
+                        <span class="text-muted fst-italic">Événement autonome (sans chorale)</span>
+                      }
+                    </td>
+                    <td>{{ evt.Role === null ? '—' : getUserRoleLabel(evt.Role) }}</td>
+                    <td>{{ evt.Presence === null ? '—' : getPresenceLabel(evt.Presence) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <section>
+        <h2 class="user-detail__section-title">Rattachements client ({{ detail.ClientAttachments.length }})</h2>
+        @if (detail.ClientAttachments.length === 0) {
+          <p class="text-muted">Aucun rattachement client.</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Rôle</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rattachement of detail.ClientAttachments; track rattachement.ClientId) {
+                  <tr>
+                    <td>{{ rattachement.ClientName }}</td>
+                    <td>{{ rattachement.Role }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  </app-data-state>
+</div>

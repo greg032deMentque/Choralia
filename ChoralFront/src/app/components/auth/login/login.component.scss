@@ -1,0 +1,60 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: var(--color-neutral-50);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-8);
+}
+
+.login-card__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  margin-bottom: var(--space-6);
+}
+
+.login-card__brand-name {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  font-size: var(--text-heading-2-size);
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.login-card__title {
+  font-family: var(--font-family-display);
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  line-height: var(--text-display-line-height);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-2);
+}
+
+.login-card__subtitle {
+  color: var(--text-muted);
+  margin: 0 0 var(--space-6);
+}
+
+.login-form__forgot-link {
+  font-size: var(--text-caption-size);
+}
+
+// `.invalid-feedback` de Bootstrap ne s'affiche que si son frère précédent porte
+// `.is-invalid` — ici le frère est le `.input-group`, pas l'input. Message autonome, même
+// rendu que les autres erreurs de champ.
+.login-form__error {
+  margin-top: var(--space-1);
+  font-size: var(--text-caption-size);
+  color: var(--color-error);
+}

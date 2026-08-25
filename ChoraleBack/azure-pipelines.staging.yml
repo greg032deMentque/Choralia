@@ -1,0 +1,32 @@
+# Staging back — branche dev. Compile, controle, teste et publie un artefact.
+# NE DEPLOIE RIEN : le deploiement est confie aux Releases Azure DevOps, qui consomment
+# l'artefact `app_service_back-staging`. Aucune ressource Azure n'est touchee par ce
+# pipeline.
+
+trigger:
+  branches:
+    include:
+      - dev
+  paths:
+    include:
+      - ChoraleBack/**
+
+# Les executions de validation de pull request sont declenchees par la politique de branche
+# de master, qui ignore ce reglage. Le laisser a `none` evite un doublon d'execution.
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+  - stage: Build
+    displayName: Build · Audit · Test · Artefact
+    jobs:
+      - job: BuildJob
+        displayName: Restore · Audit · Build · Test · Publish
+        steps:
+          - template: templates/build-and-test.yml
+            parameters:
+              publishArtifact: true
+              artifactName: 'app_service_back-staging'

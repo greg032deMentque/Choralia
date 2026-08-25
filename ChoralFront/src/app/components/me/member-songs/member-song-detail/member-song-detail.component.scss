@@ -1,0 +1,65 @@
+// Le gabarit de page vient de `.page` (styles.scss). Seuls les blocs propres à cette fiche
+// sont stylés ici — aucun utilitaire Bootstrap n'est réécrit.
+
+.member-song-detail__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  line-height: var(--text-heading-1-line-height);
+  margin-bottom: var(--space-2);
+}
+
+// Métadonnées en ligne, séparées par des points médians générés en CSS : le gabarit ne porte
+// donc aucun séparateur en dur, qui resterait orphelin dès qu'une métadonnée est absente.
+.member-song-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.member-song-detail__meta span + span::before {
+  content: '·';
+  margin-right: var(--space-2);
+}
+
+.member-song-detail__section-title {
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-heading-2-weight);
+  line-height: var(--text-heading-2-line-height);
+  margin-bottom: var(--space-3);
+}
+
+.member-song-detail__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.member-song-detail__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.member-song-detail__item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.member-song-detail__item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

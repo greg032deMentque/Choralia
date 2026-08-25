@@ -1,0 +1,190 @@
+<div class="page score-list">
+  <app-page-header title="Partitions">
+    @if (canManage() && selectedSongId()) {
+      <button type="button" class="btn btn-primary" (click)="showUploadForm.set(!showUploadForm())">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter une partition
+      </button>
+    }
+  </app-page-header>
+
+  @if (showUploadForm()) {
+    <div class="mb-4">
+      <app-score-upload-form
+        [songId]="selectedSongId()"
+        (created)="onUploadCreated()"
+        (cancelled)="showUploadForm.set(false)"
+      />
+    </div>
+  }
+
+  <div class="row g-3 mb-4">
+    <app-song-picker
+      attachableLabel="une partition"
+      (songSelected)="onSongChange($event)"
+      (repertoireEmpty)="repertoireEmpty.set($event)"
+      (loadFailed)="error.set('Impossible de charger la liste des chants.')"
+    />
+    <div class="col-md-2">
+      <label for="typeFilter" class="form-label">Type</label>
+      <select id="typeFilter" class="form-select" (change)="onTypeFilterChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (type of allTypes; track type) {
+          <option [value]="type" [selected]="typeFilter() === type">{{ getTypeScoreLabel(type) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="voiceFilter" class="form-label">Voix</label>
+      <select id="voiceFilter" class="form-select" (change)="onVoicePartFilterChange($any($event.target).value)">
+        <option value="">Toutes</option>
+        @for (voicePart of allVoicePart; track voicePart) {
+          <option [value]="voicePart" [selected]="voicePartFilter() === voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="statusFilter" class="form-label">Statut</label>
+      <select id="statusFilter" class="form-select" (change)="onStatusFilterChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (status of allStatuss; track status) {
+          <option [value]="status" [selected]="statusFilter() === status">{{ getStatusScoreLabel(status) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="filterText" class="form-label">Recherche</label>
+      <input id="filterText" type="search" class="form-control" [value]="filterText()" (input)="onFilterTextChange($any($event.target).value)" />
+    </div>
+  </div>
+
+  @if (!selectedSongId()) {
+    <!-- L'échec de chargement du répertoire ne passe plus par app-data-state (rendu seulement
+         quand un chant est sélectionné) : sans ce bloc, l'erreur restait invisible. -->
+    @if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    } @else if (!repertoireEmpty()) {
+      <div class="alert alert-info">Sélectionnez un chant pour afficher ses partitions.</div>
+    }
+  } @else {
+    <app-data-state
+      [loading]="loading()"
+      [error]="error()"
+      [empty]="items().length === 0"
+      [emptyIcon]="IconNameEnum.FilePdf"
+      [emptyActionLabel]="canManage() ? 'Ajouter une partition' : null"
+      emptyMessage="Aucune partition pour ce chant."
+      (emptyAction)="showUploadForm.set(true)"
+    >
+      <!-- Tableau propre à cet écran (édition en ligne avec colspan, non représentable par le
+           modèle « une colonne = une cellule » de DataTableComponent). Le rendu carte sous
+           768 px vient de la classe partagée `table-cards` (styles.scss). -->
+      <div class="table-responsive table-cards-wrapper">
+        <table class="table table-hover align-middle table-cards">
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Type</th>
+              <th>Voix cible</th>
+              <th>Statut</th>
+              <th class="cell--hide-mobile">Fichier</th>
+              <th class="cell--hide-mobile">Publiée le</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (score of items(); track score.Id) {
+              <tr>
+                @if (editingId() === score.Id) {
+                  <td data-label="Version">
+                    <input type="text" class="form-control form-control-sm" [value]="editVersion()" (input)="editVersion.set($any($event.target).value)" />
+                  </td>
+                  <td colspan="3" data-label="Téléchargement">
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        [id]="'editTda-' + score.Id"
+                        [checked]="editDownloadAllowed()"
+                        (change)="editDownloadAllowed.set($any($event.target).checked)"
+                      />
+                      <label class="form-check-label" [for]="'editTda-' + score.Id">Téléchargement autorisé</label>
+                    </div>
+                  </td>
+                  <td data-label="Fichier" class="cell--hide-mobile">{{ score.OriginalFileName || '—' }}</td>
+                  <td data-label="Publiée le" class="cell--hide-mobile">{{ score.PublishedAt ? (score.PublishedAt | date: 'short') : '—' }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="score-list__actions">
+                      <button type="button" class="btn btn-sm btn-primary" (click)="saveEdit(score)">Enregistrer</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelEdit()">Annuler</button>
+                    </div>
+                  </td>
+                } @else {
+                  <td data-label="Version">{{ score.Version }}</td>
+                  <td data-label="Type">{{ getTypeScoreLabel(score.Type) }}</td>
+                  <td data-label="Voix cible">{{ score.TargetVoicePart === null ? '—' : getVoicePartLabel(score.TargetVoicePart) }}</td>
+                  <td data-label="Statut">
+                    <span
+                      class="status-badge"
+                      [class.status-badge--draft]="score.Status === ScoreStatusEnum.Draft"
+                      [class.status-badge--published]="score.Status === ScoreStatusEnum.Published"
+                      [class.status-badge--archived]="score.Status === ScoreStatusEnum.Archived"
+                    >
+                      {{ getStatusScoreLabel(score.Status) }}
+                    </span>
+                  </td>
+                  <td data-label="Fichier" class="cell--hide-mobile">{{ score.OriginalFileName || '—' }}</td>
+                  <td data-label="Publiée le" class="cell--hide-mobile">{{ score.PublishedAt ? (score.PublishedAt | date: 'short') : '—' }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="score-list__actions">
+                      <!-- Action par défaut : consulter à l'écran. Le téléchargement n'est
+                           proposé que si la partition l'autorise (`10-D5`) — bouton absent,
+                           jamais désactivé : un droit non accordé ne se montre pas. -->
+                      <button type="button" class="btn-icon" (click)="openViewer(score)" aria-label="Consulter">
+                        <app-icon [name]="IconNameEnum.Eye" size="dense" />
+                      </button>
+                      @if (score.DownloadAllowed) {
+                        <button type="button" class="btn-icon" (click)="download(score)" aria-label="Télécharger">
+                          <app-icon [name]="IconNameEnum.Download" size="dense" />
+                        </button>
+                      }
+                      @if (canManage()) {
+                        @if (score.Status === ScoreStatusEnum.Draft) {
+                          <button type="button" class="btn-icon" (click)="startEdit(score)" aria-label="Modifier">
+                            <app-icon [name]="IconNameEnum.Pencil" size="dense" />
+                          </button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" (click)="publish(score)">Publier</button>
+                        }
+                        @if (score.Status === ScoreStatusEnum.Draft || score.Status === ScoreStatusEnum.Published) {
+                          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="archive(score)">Archiver</button>
+                        }
+                        @if (score.Status === ScoreStatusEnum.Archived) {
+                          <button type="button" class="btn btn-sm btn-outline-primary" (click)="restore(score)">Restaurer</button>
+                        }
+                        <button type="button" class="btn-icon" (click)="deleteScore(score)" aria-label="Supprimer">
+                          <app-icon [name]="IconNameEnum.Trash" size="dense" />
+                        </button>
+                      }
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-pagination
+  [page]="page()"
+  [totalPages]="totalPages()"
+  [totalCount]="totalCount()"
+  ariaLabel="Pagination des partitions"
+  (pageChange)="goToPage($event)"
+/>
+    </app-data-state>
+  }
+
+  @if (viewerScoreId(); as scoreId) {
+    <app-score-viewer [scores]="viewerScores()" [initialScoreId]="scoreId" (closed)="closeViewer()" />
+  }
+</div>

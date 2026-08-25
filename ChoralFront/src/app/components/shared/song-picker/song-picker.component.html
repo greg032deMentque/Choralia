@@ -1,0 +1,16 @@
+@if (hasNoSong()) {
+  <div class="alert alert-info">
+    Aucun chant au répertoire. Créez d'abord un chant pour y attacher {{ attachableLabel() }}.
+    <a [routerLink]="songsLink()" class="alert-link ms-1">Aller aux chants</a>
+  </div>
+} @else {
+  <div class="col-md-4">
+    <label [for]="selectId" class="form-label">Chant</label>
+    <select [id]="selectId" class="form-select" (change)="onChange($any($event.target).value)">
+      <option value="" [selected]="selectedSongId() === null">— Sélectionner un chant —</option>
+      @for (option of options(); track option.Value) {
+        <option [value]="option.Value" [selected]="option.Value === selectedSongId()">{{ option.Label }}</option>
+      }
+    </select>
+  </div>
+}

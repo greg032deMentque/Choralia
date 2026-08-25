@@ -1,0 +1,13 @@
+// Le gabarit de page vient de `.page` (styles.scss), le titre de `PageHeaderComponent`.
+
+.event-list__actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  .event-list__actions {
+    justify-content: flex-start;
+  }
+}

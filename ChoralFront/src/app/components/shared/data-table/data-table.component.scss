@@ -1,0 +1,190 @@
+// Barre d'outils : recherche, ouverture du panneau de filtres, tri du rendu carte.
+.data-table__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.data-table__search {
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+
+.data-table__filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.data-table__filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background-color: var(--action-bg);
+  color: var(--action-fg);
+  font-size: var(--text-overline-size);
+}
+
+.data-table__filter-panel {
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  background-color: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+// Chips de filtres actifs (§3.3) : ce qui filtre la liste est toujours visible et retirable
+// en un geste, y compris quand le panneau est replié.
+.data-table__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+}
+
+.data-table__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-full);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: var(--text-caption-size);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--bg-hover);
+  }
+}
+
+// Le tri par sélecteur ne sert qu'au rendu carte — au format tableau, l'en-tête de colonne
+// reste le moyen de tri, et deux contrôles concurrents pour la même action se contredisent.
+.data-table__mobile-sort {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 200px;
+}
+
+.data-table__sort-direction app-icon {
+  transition: transform var(--duration-fast) var(--easing-standard);
+}
+
+.data-table__sort-direction--asc app-icon {
+  transform: rotate(180deg);
+}
+
+.data-table__table {
+  th[role='button'] {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th[role='button']:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.data-table__sort-icon {
+  margin-inline-start: var(--space-1);
+  font-size: var(--text-caption-size);
+}
+
+// En-tête de groupe (`groupBy`) : une bande discrète, pas une ligne de donnée — spécificité
+// portée par le double sélecteur tr+td pour l'emporter sur `.table-cards tr`/`td:first-child`
+// (styles.scss, globaux) quel que soit l'ordre d'injection des feuilles de style.
+tr.data-table__group-header {
+  background-color: var(--bg-sunken);
+
+  td.data-table__group-header-cell {
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-family-display);
+    font-weight: var(--text-heading-2-weight);
+    font-size: var(--text-body-medium-size);
+    color: var(--text-primary);
+  }
+}
+
+.data-table__group-count {
+  margin-inline-start: var(--space-1);
+  font-family: var(--font-family-base);
+  font-weight: var(--text-body-weight);
+  color: var(--text-muted);
+}
+
+.data-table__row--clickable {
+  cursor: pointer;
+}
+
+.data-table__row--clickable:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.data-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.data-table__page-size {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+
+  .form-select {
+    width: auto;
+    font-size: var(--text-caption-size);
+  }
+}
+
+// Le rendu carte lui-même est porté par `.table-cards` (styles.scss), partagé avec les écrans
+// qui gardent leur propre tableau. Ici, seuls les contrôles propres au composant s'adaptent.
+@media (max-width: 767px) {
+  .data-table__mobile-sort {
+    display: flex;
+  }
+
+  .data-table__footer {
+    justify-content: center;
+  }
+
+  // En rendu carte, `.table-cards tr` (styles.scss) pose bordure/ombre/marge de carte et
+  // `td:first-child` un gros titre avec fil supprimé — l'en-tête de groupe n'est ni une carte
+  // ni une donnée : il reprend juste la bande discrète du rendu tableau, sans ces artefacts.
+  tr.data-table__group-header {
+    margin-bottom: var(--space-1);
+    padding: 0;
+    border: none;
+    box-shadow: none;
+
+    td.data-table__group-header-cell {
+      display: block;
+      padding: var(--space-2) var(--space-3);
+      margin-bottom: 0;
+      border-bottom: none;
+      text-align: start;
+
+      &::before {
+        content: none;
+      }
+    }
+  }
+}

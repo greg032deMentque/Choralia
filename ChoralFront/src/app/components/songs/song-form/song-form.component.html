@@ -1,0 +1,108 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate class="song-form">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <label for="titre" class="form-label">Titre</label>
+      <input
+        id="titre"
+        type="text"
+        class="form-control"
+        formControlName="title"
+        [class.is-invalid]="form.controls.title.invalid && form.controls.title.touched"
+      />
+      @if (form.controls.title.invalid && form.controls.title.touched) {
+        <div class="invalid-feedback">Le titre est obligatoire (200 caractères max).</div>
+      }
+    </div>
+
+    <div class="col-md-4">
+      <label for="status" class="form-label">Statut</label>
+      <select id="status" class="form-select" formControlName="status">
+        @for (status of allStatuss; track status) {
+          <option [value]="status">{{ getSongStatusLabel(status) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-12">
+      <span class="form-label d-block">Voix concernées</span>
+      <div class="d-flex flex-wrap gap-3">
+        @for (voicePart of allVoicePart; track voicePart) {
+          <div class="form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [id]="'voicePart-' + voicePart"
+              [checked]="isVoicePartSelected(voicePart)"
+              (change)="toggleVoicePart(voicePart)"
+            />
+            <label class="form-check-label" [for]="'voicePart-' + voicePart">{{ getVoicePartLabel(voicePart) }}</label>
+          </div>
+        }
+      </div>
+      @if (form.controls.voiceParts.invalid && form.controls.voiceParts.touched) {
+        <div class="text-danger small mt-1">Sélectionnez au moins une voix.</div>
+      }
+    </div>
+
+    <div class="col-md-4">
+      <label for="auteur" class="form-label">Auteur</label>
+      <input id="auteur" type="text" class="form-control" formControlName="author" />
+    </div>
+
+    <div class="col-md-4">
+      <label for="compositeur" class="form-label">Compositeur</label>
+      <input id="compositeur" type="text" class="form-control" formControlName="composer" />
+    </div>
+
+    <div class="col-md-4">
+      <label for="langue" class="form-label">Langue</label>
+      <input id="langue" type="text" class="form-control" formControlName="language" />
+    </div>
+
+    <div class="col-md-4">
+      <label for="duree" class="form-label">Durée approximative (secondes)</label>
+      <input
+        id="duree"
+        type="number"
+        min="0"
+        class="form-control"
+        formControlName="approximateDurationSeconds"
+        [class.is-invalid]="form.controls.approximateDurationSeconds.invalid && form.controls.approximateDurationSeconds.touched"
+      />
+    </div>
+
+    <div class="col-md-4">
+      <label for="tonalite" class="form-label">Tonalité de travail</label>
+      <input id="tonalite" type="text" class="form-control" formControlName="workingKey" />
+    </div>
+
+    <div class="col-md-4">
+      <label for="priorite" class="form-label">Priorité</label>
+      <select id="priorite" class="form-select" formControlName="priority">
+        <option [ngValue]="null">Non définie</option>
+        @for (priority of allPrioritys; track priority) {
+          <option [ngValue]="priority">{{ getPrioritySongLabel(priority) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-12">
+      <label for="commentaires" class="form-label">Commentaires de préparation</label>
+      <textarea id="commentaires" class="form-control" rows="3" formControlName="preparationNotes"></textarea>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">{{ error() }}</div>
+  }
+
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      }
+      {{ isEditMode() ? 'Enregistrer' : 'Créer le chant' }}
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="isSubmitting()">Annuler</button>
+  </div>
+</form>

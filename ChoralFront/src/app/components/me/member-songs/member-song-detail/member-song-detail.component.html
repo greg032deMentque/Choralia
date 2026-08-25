@@ -1,0 +1,156 @@
+<div class="page member-song-detail">
+  <a [routerLink]="['/' + RoutePaths.Me, RoutePaths.Songs]" class="d-inline-flex align-items-center gap-1 mb-3">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux chants
+  </a>
+
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!song()"
+    emptyMessage="Chant introuvable."
+    retryLabel="Réessayer"
+    variant="spinner"
+    (retry)="load()"
+  >
+    @if (song(); as song) {
+      <h1 class="member-song-detail__title">{{ song.Title }}</h1>
+      <p class="member-song-detail__meta">
+        @if (song.Author) {
+          <span>{{ song.Author }}</span>
+        }
+        @if (song.Composer) {
+          <span>{{ song.Composer }}</span>
+        }
+        @if (song.WorkingKey) {
+          <span>Tonalité {{ song.WorkingKey }}</span>
+        }
+        @if (song.VoiceParts.length > 0) {
+          <span>{{ getVoicePartsLabel(song.VoiceParts) }}</span>
+        }
+      </p>
+
+      <section class="mb-5" aria-labelledby="member-song-scores">
+        <h2 id="member-song-scores" class="member-song-detail__section-title">Partitions</h2>
+
+        <app-data-state
+          [loading]="scoresLoading()"
+          [error]="scoresError()"
+          [empty]="scores().length === 0"
+          [emptyIcon]="IconNameEnum.FilePdf"
+          emptyMessage="Aucune partition publiée pour ce chant."
+          retryLabel="Réessayer"
+          (retry)="loadScores()"
+        >
+          <ul class="member-song-detail__items">
+            @for (score of scores(); track score.Id) {
+              <li class="member-song-detail__item">
+                <app-icon [name]="IconNameEnum.FilePdf" size="nav" [ariaLabel]="null" />
+                <div class="member-song-detail__item-text">
+                  <span class="fw-medium">
+                    {{ score.TargetVoicePart === null ? getTypeScoreLabel(score.Type) : getVoicePartLabel(score.TargetVoicePart) }}
+                  </span>
+                  <span class="text-muted small">Version {{ score.Version }}</span>
+                </div>
+                <div class="member-song-detail__item-actions">
+                  <button type="button" class="btn btn-outline-primary btn-sm" (click)="openViewer(score)">
+                    <app-icon [name]="IconNameEnum.Eye" size="dense" [ariaLabel]="null" />
+                    Consulter
+                  </button>
+                  <!-- `10-D5` : le téléchargement n'apparaît que si la partition l'autorise. -->
+                  @if (score.DownloadAllowed) {
+                    <button type="button" class="btn-icon" (click)="downloadScore(score)" aria-label="Télécharger la partition">
+                      <app-icon [name]="IconNameEnum.Download" size="dense" />
+                    </button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+
+          <app-pagination
+            [page]="scoresPage()"
+            [totalPages]="scoresTotalPages()"
+            [totalCount]="scoresTotalCount()"
+            ariaLabel="Pagination des partitions"
+            (pageChange)="goToScoresPage($event)"
+          />
+        </app-data-state>
+      </section>
+
+      <section aria-labelledby="member-song-recordings">
+        <h2 id="member-song-recordings" class="member-song-detail__section-title">Enregistrements</h2>
+
+        <!-- Toutes les voix sont lisibles par tout membre actif : le filtre sert au confort,
+             il ne porte aucune restriction d'accès. -->
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label for="recordingVoiceFilter" class="form-label">Voix</label>
+            <select
+              id="recordingVoiceFilter"
+              class="form-select"
+              (change)="onVoicePartFilterChange($any($event.target).value)"
+            >
+              <option value="">Toutes les voix</option>
+              @for (voicePart of allVoicePart; track voicePart) {
+                <option [value]="voicePart" [selected]="voicePartFilter() === voicePart">
+                  {{ getVoicePartLabel(voicePart) }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <app-data-state
+          [loading]="recordingsLoading()"
+          [error]="recordingsError()"
+          [empty]="false"
+          retryLabel="Réessayer"
+          (retry)="loadRecordings()"
+        >
+          <app-audio-player [tracks]="tracks()" [emptyMessage]="playerEmptyMessage()" />
+
+          @if (recordings().length > 0) {
+            <ul class="member-song-detail__items mt-3">
+              @for (recording of recordings(); track recording.Id) {
+                @if (recording.DownloadAllowed) {
+                  <li class="member-song-detail__item">
+                    <app-icon [name]="IconNameEnum.FileMusic" size="nav" [ariaLabel]="null" />
+                    <div class="member-song-detail__item-text">
+                      <span class="fw-medium">
+                        {{ recording.TargetVoicePart === null ? 'Général' : getVoicePartLabel(recording.TargetVoicePart) }}
+                      </span>
+                      <span class="text-muted small">{{ recording.ContentOwner }}</span>
+                    </div>
+                    <div class="member-song-detail__item-actions">
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="downloadRecording(recording)"
+                        aria-label="Télécharger l'enregistrement"
+                      >
+                        <app-icon [name]="IconNameEnum.Download" size="dense" />
+                      </button>
+                    </div>
+                  </li>
+                }
+              }
+            </ul>
+          }
+
+          <app-pagination
+            [page]="recordingsPage()"
+            [totalPages]="recordingsTotalPages()"
+            [totalCount]="recordingsTotalCount()"
+            ariaLabel="Pagination des enregistrements"
+            (pageChange)="goToRecordingsPage($event)"
+          />
+        </app-data-state>
+      </section>
+    }
+  </app-data-state>
+
+  @if (viewerScoreId(); as scoreId) {
+    <app-score-viewer [scores]="scores()" [initialScoreId]="scoreId" (closed)="closeViewer()" />
+  }
+</div>

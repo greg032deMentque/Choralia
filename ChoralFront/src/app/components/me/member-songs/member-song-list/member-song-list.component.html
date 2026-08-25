@@ -1,0 +1,35 @@
+<div class="page member-song-list">
+  <app-page-header title="Chants" />
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [pageSizeSelectable]="true"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    [emptyIcon]="IconNameEnum.MusicNotes"
+    emptyMessage="Aucun chant au répertoire pour le moment."
+    noResultsMessage="Aucun chant ne correspond à cette recherche."
+    retryLabel="Réessayer"
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterTextChange($event)"
+    (rowClick)="openSong($event)"
+    (retry)="load()"
+  />
+</div>
+
+<ng-template #tplTitle let-song>
+  <a [routerLink]="['/' + RoutePaths.Me, RoutePaths.Songs, song.Id]" (click)="$event.stopPropagation()">{{ song.Title }}</a>
+</ng-template>
+
+<ng-template #tplVoiceParts let-song>
+  {{ song.VoiceParts.length === 0 ? '—' : getVoicePartsLabel(song.VoiceParts) }}
+</ng-template>

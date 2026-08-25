@@ -1,0 +1,143 @@
+<div class="audio-player">
+  <!-- Masqué et sans `controls` : les commandes natives sont remplacées par celles ci-dessous,
+       qui suivent les tokens et le catalogue d'icônes. La source est toujours un blob: (voir
+       audio-player.component.ts). -->
+  <audio
+    #audioEl
+    class="d-none"
+    (ended)="onEnded()"
+    (timeupdate)="onTimeUpdate()"
+    (loadedmetadata)="onLoadedMetadata()"
+    (error)="onAudioError()"
+  ></audio>
+
+  @if (!hasTracks()) {
+    <p class="text-muted mb-0">{{ emptyMessage() }}</p>
+  } @else {
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="previous()" aria-label="Piste précédente">
+        <app-icon [name]="IconNameEnum.SkipBack" size="dense" [ariaLabel]="null" />
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="togglePlayPause()"
+        [disabled]="isLoading()"
+        [attr.aria-label]="isPlaying() ? 'Pause' : 'Lire'"
+      >
+        @if (isLoading()) {
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        } @else {
+          <app-icon [name]="isPlaying() ? IconNameEnum.Pause : IconNameEnum.Play" size="dense" [ariaLabel]="null" />
+        }
+      </button>
+
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="next()" aria-label="Piste suivante">
+        <app-icon [name]="IconNameEnum.SkipForward" size="dense" [ariaLabel]="null" />
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-secondary]="loop()"
+        [class.btn-outline-secondary]="!loop()"
+        [attr.aria-pressed]="loop()"
+        (click)="toggleLoop()"
+        aria-label="Lecture en boucle"
+      >
+        <app-icon [name]="IconNameEnum.Repeat" size="dense" [ariaLabel]="null" />
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-secondary]="shuffle()"
+        [class.btn-outline-secondary]="!shuffle()"
+        [attr.aria-pressed]="shuffle()"
+        (click)="toggleShuffle()"
+        aria-label="Lecture aléatoire"
+      >
+        <app-icon [name]="IconNameEnum.Shuffle" size="dense" [ariaLabel]="null" />
+      </button>
+
+      <div class="audio-player__current">
+        @if (currentTrack(); as track) {
+          <span class="fw-medium">{{ track.Title }}</span>
+          @if (track.Subtitle) {
+            <span class="text-muted small ms-2">{{ track.Subtitle }}</span>
+          }
+        } @else {
+          <span class="text-muted">Aucune piste sélectionnée</span>
+        }
+      </div>
+
+      <div class="audio-player__volume">
+        <app-icon [name]="IconNameEnum.SpeakerHigh" size="dense" [ariaLabel]="null" />
+        <input
+          type="range"
+          class="form-range"
+          min="0"
+          max="1"
+          step="0.05"
+          aria-label="Volume"
+          [value]="volume()"
+          (input)="onVolumeChange($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <!-- Déplacement dans la piste : le Blob est entièrement en mémoire, le seek est donc
+         instantané et ne redéclenche aucune requête. -->
+    <div class="audio-player__progress">
+      <span class="audio-player__time">{{ formatDuration(currentTime()) }}</span>
+      <input
+        type="range"
+        class="form-range"
+        min="0"
+        step="1"
+        [max]="seekMax()"
+        [value]="currentTime()"
+        [disabled]="seekMax() === 0"
+        aria-label="Position dans la piste"
+        (input)="onSeek($any($event.target).value)"
+      />
+      <span class="audio-player__time">{{ formatDuration(seekMax()) }}</span>
+    </div>
+
+    @if (needsUserGesture()) {
+      <div class="alert alert-info mt-3 mb-0" role="status">
+        Votre navigateur demande une action de votre part pour démarrer le son. Appuyez sur « Lire ».
+      </div>
+    }
+
+    @if (error()) {
+      <div class="alert alert-warning mt-3 mb-0" role="alert" aria-live="assertive">{{ error() }}</div>
+    }
+
+    <ol class="audio-player__tracks" aria-label="Pistes de la playlist">
+      @for (track of orderedTracks(); track track.RecordingId; let index = $index) {
+        <li>
+          <button
+            type="button"
+            class="audio-player__track"
+            [class.audio-player__track--current]="index === currentPosition()"
+            [attr.aria-current]="index === currentPosition() ? 'true' : null"
+            (click)="playAt(index)"
+          >
+            <app-icon
+              [name]="index === currentPosition() && isPlaying() ? IconNameEnum.Pause : IconNameEnum.Play"
+              size="dense"
+              [ariaLabel]="null"
+            />
+            <span class="audio-player__track-title">{{ track.Title }}</span>
+            @if (track.Subtitle) {
+              <span class="text-muted small">{{ track.Subtitle }}</span>
+            }
+            <span class="audio-player__track-duration">{{ formatDuration(track.DurationSeconds) }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+  }
+</div>

@@ -1,0 +1,34 @@
+<app-modal [title]="title()" (closed)="cancel()">
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [loading]="loading()"
+    [error]="error()"
+    emptyMessage="Aucun résultat."
+    [noResultsMessage]="emptyMessage()"
+    (filterChange)="onFilterChange($event)"
+    (pageChange)="onPageChange($event)"
+  />
+
+  <p class="entity-multi-select-modal__count" aria-live="polite">
+    {{ selectedCount() }} élément{{ selectedCount() > 1 ? 's' : '' }} sélectionné{{ selectedCount() > 1 ? 's' : '' }}
+  </p>
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Annuler</button>
+    <button type="button" class="btn btn-primary" (click)="confirm()">Valider la sélection</button>
+  </div>
+</app-modal>
+
+<ng-template #tplCheckbox let-item>
+  <input
+    type="checkbox"
+    class="form-check-input"
+    [checked]="isSelected(item.Value)"
+    (change)="toggle(item)"
+    [attr.aria-label]="'Sélectionner ' + item.Label"
+  />
+</ng-template>

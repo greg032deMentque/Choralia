@@ -1,0 +1,23 @@
+// Uniquement ce que les utilitaires Bootstrap ne couvrent pas : la couleur d'accent de
+// l'icône et l'indentation de la liste d'impacts. Tokens SÉMANTIQUES (--state-*), jamais les
+// alias --color-* de compatibilité (tokens.scss §"Alias de compatibilité" — proscrits en
+// code neuf, c'est précisément le thème parallèle que la migration hors sweetalert2 supprime).
+.confirm-modal__icon {
+  color: var(--state-info);
+  flex-shrink: 0;
+
+  &--danger {
+    color: var(--state-warning);
+  }
+}
+
+.confirm-modal__message {
+  margin: 0;
+}
+
+.confirm-modal__impacts {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-5);
+  font-size: var(--text-body-medium-size);
+  font-weight: var(--text-body-medium-weight);
+}

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Chorale.Services\ChoraleBackEnd.Services.csproj" />
+    <ProjectReference Include="..\Chorale.ViewModels\ChoraleBackEnd.ViewModels.csproj" />
+    <ProjectReference Include="..\Chorale.Common\ChoraleBackEnd.Common.csproj" />
+  </ItemGroup>
+
+  <!-- Fixtures du seed de demonstration (SeedDatabase.Recordings.cs, Development et Staging
+       si Seed:Demo:EnabledInStaging, jamais Production).
+       Hors wwwroot, le SDK Web ne les embarque pas dans dotnet publish (seul wwwroot/ est copie
+       automatiquement) : sans cette regle, seul `dotnet run` les trouvait, via ContentRootPath
+       pointant sur l'arborescence source. Retirees du glob None implicite du SDK avant d'etre
+       reincluses en Content, pour eviter un doublon d'item (NETSDK1022). -->
+  <ItemGroup>
+    <None Remove="Data\SeedFixtures\**" />
+    <Content Include="Data\SeedFixtures\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+    <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="10.2.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Secrets de developpement (JWTToken:Secret, Seed:Admin:Password,
+         Seed:Demo:Password, AutomapperLicense, Analytics:IpSalt) :
+         appsettings.Development.json, non versionne.
+         Voir README § Demarrage developpeur. -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

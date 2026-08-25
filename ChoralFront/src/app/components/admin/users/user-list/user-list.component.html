@@ -1,0 +1,334 @@
+<div class="page user-list">
+  <app-page-header title="Utilisateurs" [breadcrumb]="[{ label: 'Administration' }, { label: 'Utilisateurs' }]" />
+
+  <nav class="nav nav-tabs mb-3" role="tablist" aria-label="Catégories d'utilisateurs">
+    <button
+      type="button"
+      class="nav-link"
+      role="tab"
+      [class.active]="activeTab() === 'choirs'"
+      [attr.aria-selected]="activeTab() === 'choirs'"
+      aria-controls="user-list-panel"
+      (click)="selectTab('choirs')"
+    >
+      Chorales
+    </button>
+    <button
+      type="button"
+      class="nav-link"
+      role="tab"
+      [class.active]="activeTab() === 'events'"
+      [attr.aria-selected]="activeTab() === 'events'"
+      aria-controls="user-list-panel"
+      (click)="selectTab('events')"
+    >
+      Événements
+    </button>
+    <button
+      type="button"
+      class="nav-link"
+      role="tab"
+      [class.active]="activeTab() === 'admins'"
+      [attr.aria-selected]="activeTab() === 'admins'"
+      aria-controls="user-list-panel"
+      (click)="selectTab('admins')"
+    >
+      Administrateurs
+    </button>
+    <button
+      type="button"
+      class="nav-link"
+      role="tab"
+      [class.active]="activeTab() === 'unattached'"
+      [attr.aria-selected]="activeTab() === 'unattached'"
+      aria-controls="user-list-panel"
+      (click)="selectTab('unattached')"
+    >
+      Sans rattachement
+    </button>
+  </nav>
+
+  <div id="user-list-panel" role="tabpanel">
+    @switch (activeTab()) {
+      @case ('choirs') {
+        <div class="row g-2 mb-3 user-list__filters">
+          <div class="col-md-3">
+            <!-- `span`, pas `label` : rien à associer, le bouton n'est pas un contrôle de
+                 formulaire labellisable (@angular-eslint/template/label-has-associated-control). -->
+            <span class="form-label small d-block">Chorales</span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="openChoirPickerModal()">
+              <app-icon [name]="IconNameEnum.MagnifyingGlass" size="dense" [ariaLabel]="null" />
+              Choisir des chorales
+            </button>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-chorale-role">Rôle</label>
+            <select id="filter-chorale-role" class="form-select" (change)="onChoirRoleChange($any($event.target).value)">
+              <option value="">Tous</option>
+              @for (role of allRoles; track role) {
+                <option [value]="role" [selected]="choirFilterRole() === role">{{ getUserRoleLabel(role) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-chorale-statut">Statut</label>
+            <select id="filter-chorale-statut" class="form-select" (change)="onChoirStatusChange($any($event.target).value)">
+              <option value="">Tous</option>
+              @for (status of allStatuss; track status) {
+                <option [value]="status" [selected]="choirFilterStatus() === status">{{ getMemberStatusLabel(status) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-chorale-voix">Voix</label>
+            <select id="filter-chorale-voix" class="form-select" (change)="onChoirVoicePartChange($any($event.target).value)">
+              <option value="">Toutes</option>
+              @for (voicePart of allVoicePart; track voicePart) {
+                <option [value]="voicePart" [selected]="choirFilterVoicePart() === voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-chorale-actif">Compte actif</label>
+            <select id="filter-chorale-actif" class="form-select" (change)="onChoirIsActiveChange($any($event.target).value)">
+              <option value="">Tous</option>
+              <option value="true" [selected]="choirFilterIsActive() === 'true'">Actif</option>
+              <option value="false" [selected]="choirFilterIsActive() === 'false'">Inactif</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-center">
+            <div class="form-check">
+              <input
+                id="group-by-choir"
+                type="checkbox"
+                class="form-check-input"
+                [checked]="groupByChoirEnabled()"
+                (change)="groupByChoirEnabled.set($any($event.target).checked)"
+              />
+              <label class="form-check-label small" for="group-by-choir">Grouper par chorale</label>
+            </div>
+          </div>
+        </div>
+      }
+      @case ('events') {
+        <div class="row g-2 mb-3 user-list__filters">
+          <div class="col-md-3">
+            <span class="form-label small d-block">Événements</span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="openEventPickerModal()">
+              <app-icon [name]="IconNameEnum.MagnifyingGlass" size="dense" [ariaLabel]="null" />
+              Choisir des événements
+            </button>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-evenement-role">Rôle</label>
+            <select id="filter-evenement-role" class="form-select" (change)="onEventRoleChange($any($event.target).value)">
+              <option value="">Tous</option>
+              @for (role of allRoles; track role) {
+                <option [value]="role" [selected]="eventFilterRole() === role">{{ getUserRoleLabel(role) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-evenement-presence">Présence</label>
+            <select id="filter-evenement-presence" class="form-select" (change)="onEventPresenceChange($any($event.target).value)">
+              <option value="">Toutes</option>
+              @for (presence of allPresences; track presence) {
+                <option [value]="presence" [selected]="eventFilterPresence() === presence">{{ getPresenceLabel(presence) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label small" for="filter-evenement-avenir">Échéance</label>
+            <select id="filter-evenement-avenir" class="form-select" (change)="onEventUpcomingChange($any($event.target).value)">
+              <option value="">Tous</option>
+              <option value="true" [selected]="eventFilterUpcoming() === 'true'">À venir</option>
+              <option value="false" [selected]="eventFilterUpcoming() === 'false'">Passés</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-center">
+            <div class="form-check">
+              <input
+                id="group-by-event"
+                type="checkbox"
+                class="form-check-input"
+                [checked]="groupByEventEnabled()"
+                (change)="groupByEventEnabled.set($any($event.target).checked)"
+              />
+              <label class="form-check-label small" for="group-by-event">Grouper par événement</label>
+            </div>
+          </div>
+        </div>
+      }
+      @case ('admins') {
+        <div class="d-flex justify-content-end mb-3">
+          <button type="button" class="btn btn-primary btn-sm" (click)="openCreateAdminModal()">
+            <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+            Créer un administrateur
+          </button>
+        </div>
+      }
+      @case ('unattached') {
+        <div class="alert alert-info user-list__info" role="note">
+          Ces comptes n'apparaissent dans aucune autre vue de la zone admin — c'est le seul
+          endroit pour les gérer, notamment les responsables de structure sans rattachement
+          (« Rattachement client » renseigné mais aucune chorale ni aucun événement).
+        </div>
+      }
+    }
+
+    <app-data-table
+      [columns]="currentColumns()"
+      [items]="currentItems()"
+      [totalCount]="totalCount()"
+      [page]="page()"
+    [pageSizeSelectable]="true"
+      [pageSize]="pageSize()"
+      [sortActive]="sortActive()"
+      [sortDirection]="sortDirection()"
+      [loading]="loading()"
+      [error]="error()"
+      [rowClickable]="true"
+      [activeFilters]="currentActiveFilters()"
+      [groupBy]="currentGroupBy()"
+      emptyMessage="Aucun utilisateur pour le moment."
+      noResultsMessage="Aucun résultat pour ce filtre."
+      (sortChange)="onSortChange($event)"
+      (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (filterRemove)="onChipRemove($event)"
+      (rowClick)="onRowClick($event)"
+    />
+  </div>
+</div>
+
+@if (showChoirPickerModal()) {
+  <app-entity-multi-select-modal
+    title="Choisir des chorales"
+    [searchFn]="searchChoirs"
+    [initialSelection]="choirFilterChoirs()"
+    emptyMessage="Aucune chorale ne correspond à cette recherche."
+    (confirmed)="onChoirsSelected($event)"
+    (cancelled)="showChoirPickerModal.set(false)"
+  />
+}
+
+@if (showEventPickerModal()) {
+  <app-entity-multi-select-modal
+    title="Choisir des événements"
+    [searchFn]="searchEvents"
+    [initialSelection]="eventFilterEvents()"
+    emptyMessage="Aucun événement ne correspond à cette recherche."
+    (confirmed)="onEventsSelected($event)"
+    (cancelled)="showEventPickerModal.set(false)"
+  />
+}
+
+<!-- Gabarits de cellule — jamais affichés directement, référencés via currentColumns(). -->
+<ng-template #tplRoles let-item>
+  @if (isChoirRow(item)) {
+    {{ item.Roles.length === 0 ? '—' : getUserRolesLabel(item.Roles) }}
+  }
+</ng-template>
+
+<ng-template #tplVoix let-item>
+  @if (isChoirRow(item)) {
+    {{ item.PrimaryVoicePart === null ? '—' : getVoicePartLabel(item.PrimaryVoicePart) }}
+  }
+</ng-template>
+
+<ng-template #tplStatus let-item>
+  @if (hasStatus(item)) {
+    <span
+      class="badge"
+      [class.text-bg-warning]="item.Status === MemberStatusEnum.Invited"
+      [class.text-bg-success]="item.Status === MemberStatusEnum.Active"
+      [class.text-bg-secondary]="item.Status === MemberStatusEnum.Inactive"
+      [class.text-bg-dark]="item.Status === MemberStatusEnum.Archived"
+    >
+      {{ getMemberStatusLabel(item.Status) }}
+    </span>
+  }
+</ng-template>
+
+<ng-template #tplActif let-item>
+  @if (hasIsActive(item)) {
+    <span class="badge" [class.text-bg-success]="item.IsActive" [class.text-bg-secondary]="!item.IsActive">
+      {{ item.IsActive ? 'Active' : 'Inactive' }}
+    </span>
+  }
+</ng-template>
+
+<ng-template #tplLastActive let-item>
+  @if (isChoirRow(item)) {
+    {{ item.LastActive ? (item.LastActive | date: 'short') : 'Jamais' }}
+  }
+</ng-template>
+
+<ng-template #tplEvenementDate let-item>
+  @if (isEventRow(item)) {
+    {{ item.EventStartDate | date: 'medium' }}
+  }
+</ng-template>
+
+<ng-template #tplChoralePorteuse let-item>
+  @if (isEventRow(item)) {
+    @if (item.ChoirName) {
+      {{ item.ChoirName }}
+    } @else {
+      <span class="text-muted fst-italic">Événement autonome (sans chorale)</span>
+    }
+  }
+</ng-template>
+
+<ng-template #tplRoleUnique let-item>
+  @if (isEventRow(item)) {
+    {{ item.Role === null ? '—' : getUserRoleLabel(item.Role) }}
+  }
+</ng-template>
+
+<ng-template #tplPresence let-item>
+  @if (isEventRow(item)) {
+    {{ item.Presence === null ? '—' : getPresenceLabel(item.Presence) }}
+  }
+</ng-template>
+
+<ng-template #tplLastConnection let-item>
+  @if (hasCreatedAtEtLastConnection(item)) {
+    {{ item.LastConnection ? (item.LastConnection | date: 'short') : 'Jamais' }}
+  }
+</ng-template>
+
+<ng-template #tplCreatedAt let-item>
+  @if (hasCreatedAtEtLastConnection(item)) {
+    {{ item.CreatedAt | date: 'short' }}
+  }
+</ng-template>
+
+<ng-template #tplCreatedBy let-item>
+  @if (isAdminRow(item)) {
+    {{ item.CreatedByName ?? '—' }}
+  }
+</ng-template>
+
+<ng-template #tplGuest let-item>
+  @if (isUnattachedRow(item)) {
+    <span class="badge" [class.text-bg-info]="item.IsGuestAccount" [class.text-bg-light]="!item.IsGuestAccount">
+      {{ item.IsGuestAccount ? 'Oui' : 'Non' }}
+    </span>
+  }
+</ng-template>
+
+<ng-template #tplClientAssignment let-item>
+  @if (isUnattachedRow(item)) {
+    @if (item.ClientName) {
+      <span class="badge text-bg-light">{{ item.ClientName }} — {{ item.ClientRole }}</span>
+    } @else {
+      <span class="text-muted">Aucun rattachement</span>
+    }
+  }
+</ng-template>
+
+@if (showCreateAdminModal()) {
+  <app-admin-create-modal (created)="onAdminCreated()" (cancelled)="onCreateAdminCancelled()" />
+}

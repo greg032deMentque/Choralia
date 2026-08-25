@@ -1,0 +1,53 @@
+<div class="code-rattachement-panel">
+  @if (loading()) {
+    <p class="code-rattachement-panel__hint">Chargement du code de rattachement...</p>
+  } @else {
+    @if (error()) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+    }
+
+    @if (joinCode()?.IsActive && joinCode()?.Code) {
+      <div class="code-rattachement-panel__active">
+        <app-icon [name]="IconNameEnum.IdentificationCard" size="dense" [ariaLabel]="null" />
+        <span class="code-rattachement-panel__code">{{ joinCode()!.Code }}</span>
+        @if (joinCode()?.ExpiresAt) {
+          <span class="code-rattachement-panel__expiration">Expire le {{ joinCode()!.ExpiresAt | date: 'shortDate' }}</span>
+        }
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="copierCode()">
+          {{ copiedFeedback() === 'code' ? 'Copié !' : 'Copier' }}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="copierLien()">
+          {{ copiedFeedback() === 'lien' ? 'Copié !' : 'Copier le lien' }}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="isBusy()" (click)="desactiver()">Désactiver</button>
+      </div>
+
+      <p class="code-rattachement-panel__hint">Toute demande via ce code passe par votre validation.</p>
+    } @else {
+      <p class="code-rattachement-panel__hint">Aucun code de rattachement actif pour le moment.</p>
+    }
+
+    <form [formGroup]="durationForm" (ngSubmit)="generateOuRotator()" novalidate class="code-rattachement-panel__form">
+      <label for="duree-jours" class="form-label">Durée de validité (jours)</label>
+      <div class="input-group input-group-sm">
+        <input
+          id="duree-jours"
+          type="number"
+          class="form-control"
+          formControlName="durationDays"
+          min="1"
+          max="90"
+        />
+        <button type="submit" class="btn btn-outline-primary" [disabled]="isBusy()">
+          {{ joinCode()?.IsActive ? 'Faire tourner le code' : 'Générer un code' }}
+        </button>
+      </div>
+      @if (durationForm.controls.durationDays.invalid && durationForm.controls.durationDays.touched) {
+        <div class="form-text text-danger">Durée entre 1 et 90 jours.</div>
+      }
+    </form>
+  }
+</div>

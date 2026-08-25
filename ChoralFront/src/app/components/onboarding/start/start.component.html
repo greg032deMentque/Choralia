@@ -1,0 +1,76 @@
+<div class="page start-page">
+  <div class="start-header">
+    <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+    <h1 class="start-header__title">Bienvenue sur Choralia</h1>
+  </div>
+
+  @if (loading() || error() || pendingRequests().length > 0) {
+    <section class="start-requests" aria-label="Vos demandes en cours">
+      <h2 class="start-requests__title">Vos demandes en cours</h2>
+      <app-data-state [loading]="loading()" [error]="error()" [empty]="false" variant="spinner">
+        @for (request of pendingRequests(); track request.Id) {
+          <div class="start-requests__card">
+            <div>
+              <p class="start-requests__espace-nom">{{ request.SpaceName }}</p>
+              <span class="badge text-bg-warning">En attente de validation</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" [appSubmitOnce]="cancelRequestAction(request)">
+              Annuler
+            </button>
+          </div>
+        }
+      </app-data-state>
+    </section>
+  }
+
+  <div class="row g-4 start-cards">
+    <div class="col-lg-7">
+      <div class="start-card start-card--primary">
+        <app-icon [name]="IconNameEnum.UserPlus" size="empty-state" [ariaLabel]="null" />
+        <h2 class="start-card__title">Rejoindre une chorale</h2>
+        <p class="start-card__text">
+          Vous avez reçu un code de rattachement de la part d'un responsable ? Saisissez-le ici.
+        </p>
+        <form [formGroup]="codeForm" (ngSubmit)="submitCode()" novalidate>
+          <div class="mb-3">
+            <label for="start-code" class="form-label">Code de rattachement</label>
+            <input
+              id="start-code"
+              type="text"
+              #codeInput
+              class="form-control text-uppercase"
+              formControlName="code"
+              placeholder="XXXX-XXXX"
+              autocapitalize="characters"
+              [class.is-invalid]="codeForm.controls.code.invalid && codeForm.controls.code.touched"
+            />
+            @if (codeForm.controls.code.invalid && codeForm.controls.code.touched) {
+              <div class="invalid-feedback">Le code est obligatoire.</div>
+            }
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Rejoindre</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="start-card start-card--secondary">
+        <app-icon [name]="IconNameEnum.Buildings" size="empty-state" [ariaLabel]="null" />
+        <h2 class="start-card__title">Créer une chorale</h2>
+        <p class="start-card__text">Vous démarrez une nouvelle chorale ? Créez-la en tant que responsable.</p>
+        <a [routerLink]="'/' + RoutePaths.Start + '/' + RoutePaths.StartCreateChoir" class="btn btn-outline-primary w-100">
+          Créer une chorale
+        </a>
+      </div>
+
+      <a [routerLink]="'/' + RoutePaths.Start + '/' + RoutePaths.StartCreateEvent" class="start-tertiary-link">
+        Créer un événement
+      </a>
+    </div>
+  </div>
+
+  <p class="start-footnote">
+    Choralia ne propose pas d'annuaire public des chorales — pour rejoindre une chorale
+    existante, demandez son code de rattachement au responsable de cette chorale.
+  </p>
+</div>

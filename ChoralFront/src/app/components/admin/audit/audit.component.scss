@@ -1,0 +1,17 @@
+.admin-audit {
+  padding: var(--space-4);
+}
+
+.admin-audit__acteur {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-audit__acteur-nom {
+  font-weight: var(--text-body-medium-weight);
+}
+
+.admin-audit__acteur-email {
+  font-size: var(--text-caption-size);
+  color: var(--color-neutral-600);
+}

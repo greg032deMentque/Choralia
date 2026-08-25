@@ -1,0 +1,29 @@
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.form-field__label {
+  font-size: var(--text-body-medium-size);
+  font-weight: var(--text-body-medium-weight);
+  color: var(--color-neutral-900);
+}
+
+.form-field__required {
+  color: var(--color-error);
+  margin-inline-start: var(--space-1);
+}
+
+.form-field__error {
+  margin: 0;
+  font-size: var(--text-caption-size);
+  color: var(--color-error);
+}
+
+.form-field__warning {
+  margin: 0;
+  font-size: var(--text-caption-size);
+  color: var(--color-warning);
+}

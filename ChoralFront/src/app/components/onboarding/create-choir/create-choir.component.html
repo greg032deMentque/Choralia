@@ -1,0 +1,85 @@
+<div class="page create-choir-page">
+  @if (created()) {
+    <app-space-bootstrap [spaceId]="created()!.Id!" [spaceName]="created()!.Name" [spaceType]="SpaceTypeEnum.Choir" />
+  } @else if (emailNonVerifie()) {
+    <div class="create-choir-blocked">
+      <app-icon [name]="IconNameEnum.Warning" size="empty-state" [ariaLabel]="null" />
+      <h1 class="create-choir-blocked__title">Vérifiez votre adresse email</h1>
+      <p class="create-choir-blocked__text">
+        Vérifiez votre adresse email avant de créer une chorale ou un événement.
+      </p>
+
+      @if (resendSent()) {
+        <div class="alert alert-success" role="status" aria-live="polite">Message renvoyé.</div>
+      } @else {
+        <button type="button" class="btn btn-primary" (click)="rsendVerification()">
+          Renvoyer le lien de vérification
+        </button>
+      }
+
+      <a [routerLink]="'/' + RoutePaths.Start" class="create-choir-blocked__back-link">Retour</a>
+    </div>
+  } @else {
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <h1 class="create-choir-page__title">Créer une chorale</h1>
+
+        <div class="alert alert-light border create-choir-page__existe-deja">
+          Votre chorale existe peut-être déjà — demandez plutôt son code de rattachement.
+          <a [routerLink]="'/' + RoutePaths.Join" class="ms-1">J'ai un code</a>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="mb-3">
+            <label for="nom" class="form-label">Nom de la chorale</label>
+            <input
+              id="nom"
+              type="text"
+              class="form-control"
+              formControlName="name"
+              [class.is-invalid]="form.controls.name.invalid && form.controls.name.touched"
+            />
+            @if (form.controls.name.invalid && form.controls.name.touched) {
+              <div class="invalid-feedback">Le nom est obligatoire (200 caractères max).</div>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">Description (facultatif)</label>
+            <textarea id="description" class="form-control" rows="3" formControlName="description"></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label for="structure" class="form-label">
+              Cette chorale dépend-elle d'une structure ? (paroisse, école de musique, association)
+            </label>
+            <input id="structure" type="text" class="form-control" formControlName="structure" />
+            <div class="form-text">Laissez vide si vous gérez uniquement cette chorale.</div>
+          </div>
+
+          @if (error()) {
+            <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+          }
+
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            @if (isSubmitting()) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            }
+            Créer la chorale
+          </button>
+        </form>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="create-choir-page__consequences">
+          <h2 class="create-choir-page__consequences-title">Ce qui va se passer</h2>
+          <ul>
+            <li>Vous serez responsable de cette chorale.</li>
+            <li>Les 4 voix (Alto, Soprano, Basse, Ténor) sont créées automatiquement.</li>
+            <li>Vous pourrez ensuite inviter vos membres et générer un code de rattachement.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  }
+</div>

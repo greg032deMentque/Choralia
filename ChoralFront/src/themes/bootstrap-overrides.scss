@@ -1,0 +1,66 @@
+// Bootstrap 5 configuré avec les design tokens du projet.
+//
+// ATTENTION — ce fichier ne déclare PAS de simples variables : il compile Bootstrap avec sa
+// configuration. `@use 'bootstrap-overrides' as *;` suivi de `@use 'bootstrap/scss/bootstrap';`
+// ne surchargeait rien (deux modules Sass distincts : les `!default` de Bootstrap ne voient
+// jamais les variables déclarées dans un autre module), et le thème sortait en bleu Bootstrap
+// #0D6EFD depuis l'origine. Seul `@forward ... with (...)` configure réellement le module.
+//
+// Les valeurs DOIVENT rester synchronisées avec la palette de _tokens.scss : Sass est compilé
+// avant l'exécution, il ne peut pas lire une variable CSS.
+@forward 'bootstrap/scss/bootstrap' with (
+  // Bootstrap 5.3 emet un bloc [data-bs-theme="dark"] pour CHAQUE composant. Le site de
+  // gestion n'a pas de mode sombre (11-ux-ui §8.1 ne le prevoit que pour le mobile) : ce CSS
+  // n'etait jamais servi. A retirer de cette ligne le jour ou le web adopte le mode sombre.
+  $enable-dark-mode: false,
+
+  $primary: #2c3a5b,   // --ink-600
+  $secondary: #c89a4e, // --brass-500 — accent de marque, jamais porteur de texte blanc
+  $success: #2e7d32,
+  $warning: #f57c00,
+  $danger: #c62828,
+  $light: #f3f1ed,     // --stone-100
+  $dark: #141c2e,      // --ink-900
+
+  $body-bg: #faf9f7,   // --stone-50
+  $body-color: #1b2438, // --ink-800
+
+  // Le laiton et l'orange d'alerte échouent tous deux avec du texte blanc (2,6:1 et 2,7:1).
+  // Ce seuil force Bootstrap à basculer sur le texte sombre pour ces deux couleurs dans
+  // `.btn-secondary`, `.text-bg-warning` et consorts, au lieu de produire du blanc illisible.
+  $min-contrast-ratio: 4.5,
+  $color-contrast-dark: #1b2438,
+
+  $border-color: #e6e2da, // --stone-200
+
+  $font-family-sans-serif: ('Inter', system-ui, -apple-system, sans-serif),
+  $font-size-base: 0.9375rem, // 15px — text-body
+
+  $border-radius: 0.5rem,      // radius-md 8px
+  $border-radius-sm: 0.25rem,  // radius-sm 4px
+  $border-radius-lg: 1rem,     // radius-lg 16px
+  $border-radius-pill: 9999px, // radius-full
+
+  $box-shadow-sm: (0 1px 3px rgba(20, 28, 46, 0.08)),
+  $box-shadow: (0 4px 12px rgba(20, 28, 46, 0.12)),
+  $box-shadow-lg: (0 8px 32px rgba(20, 28, 46, 0.18)),
+
+  $grid-gutter-width: 1.5rem, // 24px
+  $container-max-widths: (
+    sm: 540px,
+    md: 720px,
+    lg: 960px,
+    xl: 1140px,
+    xxl: 1440px
+  ),
+
+  // Breakpoints alignés sur Spec/chorale/11-ux-ui.md §4.1
+  $grid-breakpoints: (
+    xs: 0,
+    sm: 375px,
+    md: 768px,
+    lg: 1024px,
+    xl: 1280px,
+    xxl: 1440px
+  )
+);

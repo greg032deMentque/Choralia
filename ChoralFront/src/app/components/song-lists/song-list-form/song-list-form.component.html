@@ -1,0 +1,57 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate class="song-list-form">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <label for="nom" class="form-label">Nom</label>
+      <input
+        id="nom"
+        type="text"
+        class="form-control"
+        formControlName="name"
+        [class.is-invalid]="form.controls.name.invalid && form.controls.name.touched"
+      />
+      @if (form.controls.name.invalid && form.controls.name.touched) {
+        <div class="invalid-feedback">Le nom est obligatoire (150 caractères max).</div>
+      }
+    </div>
+
+    <div class="col-md-4">
+      <label for="type" class="form-label">Type</label>
+      <select id="type" class="form-select" formControlName="type">
+        @for (type of allTypes; track type) {
+          <option [ngValue]="type">{{ getTypeListLabel(type) }}</option>
+        }
+      </select>
+    </div>
+
+    @if (showEventSelect()) {
+      <div class="col-12">
+        <label for="eventId" class="form-label">Événement</label>
+        <select id="eventId" class="form-select" formControlName="eventId">
+          <option [ngValue]="null">Sélectionner un événement</option>
+          @for (option of eventOptions(); track option.Value) {
+            <option [ngValue]="option.Value">{{ option.Label }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="col-12">
+      <label for="description" class="form-label">Description</label>
+      <textarea id="description" class="form-control" rows="3" formControlName="description"></textarea>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">{{ error() }}</div>
+  }
+
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      }
+      {{ isEditMode() ? 'Enregistrer' : 'Créer la liste' }}
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="isSubmitting()">Annuler</button>
+  </div>
+</form>

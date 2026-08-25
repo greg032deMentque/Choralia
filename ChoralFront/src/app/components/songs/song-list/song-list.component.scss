@@ -1,0 +1,15 @@
+// Le gabarit de page (largeur max, marges) vient de `.page` (styles.scss), le titre de
+// `PageHeaderComponent` — rien à redéclarer ici.
+
+.song-list__actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+}
+
+// En rendu carte, les actions repassent à gauche avec le reste du contenu.
+@media (max-width: 767px) {
+  .song-list__actions {
+    justify-content: flex-start;
+  }
+}

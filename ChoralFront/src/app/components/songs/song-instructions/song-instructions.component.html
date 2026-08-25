@@ -1,0 +1,126 @@
+<section class="song-instructions">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="song-instructions__title">Consignes</h2>
+    @if (canManage()) {
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="toggleCreateForm()">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter une consigne
+      </button>
+    }
+  </div>
+
+  @if (showCreateForm()) {
+    <form [formGroup]="createForm" novalidate class="song-instructions__form mb-4">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <app-form-field label="Voix ciblée">
+            <select class="form-select" formControlName="voicePart">
+              <!-- Vide = consigne pour tout le chœur sur ce chant (responsable uniquement).
+                   Une voix = consigne de pupitre, seul cas ouvert au chef de pupitre — et
+                   uniquement sur la sienne : le serveur refuse les autres en 403. -->
+              <option value="">Tout le chœur</option>
+              @for (voicePart of allVoicePart; track voicePart) {
+                <option [value]="voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+              }
+            </select>
+          </app-form-field>
+        </div>
+        <div class="col-md-8">
+          <app-form-field label="Titre">
+            <input type="text" class="form-control" formControlName="title" />
+          </app-form-field>
+        </div>
+        <div class="col-12">
+          <app-form-field label="Contenu" [required]="true">
+            <textarea class="form-control" rows="4" formControlName="content"></textarea>
+          </app-form-field>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button type="button" class="btn btn-primary btn-sm" [appSubmitOnce]="submitCreate">Créer le brouillon</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="toggleCreateForm()">Annuler</button>
+      </div>
+    </form>
+  }
+
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
+    [emptyIcon]="IconNameEnum.Bell"
+    emptyMessage="Aucune consigne pour ce chant."
+  >
+    <ul class="song-instructions__list">
+      @for (instruction of items(); track instruction.Id) {
+        <li class="song-instructions__item">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <span
+                class="status-badge"
+                [class.status-badge--draft]="instruction.Status === InstructionStatusEnum.Draft"
+                [class.status-badge--published]="instruction.Status === InstructionStatusEnum.Published"
+                [class.status-badge--archived]="instruction.Status === InstructionStatusEnum.Archived"
+              >
+                {{ getStatusInstructionLabel(instruction.Status) }}
+              </span>
+              <span class="badge text-bg-light ms-1">
+                {{ instruction.VoicePart === null ? 'Tout le chœur' : getVoicePartLabel(instruction.VoicePart) }}
+              </span>
+              @if (instruction.Title) {
+                <span class="song-instructions__item-title ms-2">{{ instruction.Title }}</span>
+              }
+            </div>
+            @if (canManage()) {
+              <div class="d-flex gap-2 flex-wrap">
+                @if (instruction.Status === InstructionStatusEnum.Draft) {
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="startEdit(instruction)">Modifier</button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="publish(instruction)">Publier</button>
+                }
+                @if (instruction.Status === InstructionStatusEnum.Published) {
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="archive(instruction)">Archiver</button>
+                }
+                <button type="button" class="btn-icon" (click)="deleteInstruction(instruction)" aria-label="Supprimer">
+                  <app-icon [name]="IconNameEnum.Trash" size="dense" />
+                </button>
+              </div>
+            }
+          </div>
+
+          @if (editingId() === instruction.Id) {
+            <form [formGroup]="editForm" novalidate class="song-instructions__form mt-3">
+              <app-form-field label="Titre">
+                <input type="text" class="form-control" formControlName="title" />
+              </app-form-field>
+              <app-form-field label="Contenu" [required]="true">
+                <textarea class="form-control" rows="4" formControlName="content"></textarea>
+              </app-form-field>
+              <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-primary btn-sm" [appSubmitOnce]="submitEdit">Enregistrer</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelEdit()">Annuler</button>
+              </div>
+            </form>
+          } @else {
+            <!-- Interpolation, JAMAIS [innerHTML] : Content est du texte libre saisi par un
+                 utilisateur. Les retours à la ligne sont rendus par `white-space: pre-wrap`
+                 (SCSS), pas par du HTML injecté (OWASP A03). -->
+            <p class="song-instructions__content">{{ instruction.Content }}</p>
+            <p class="song-instructions__meta">
+              {{ instruction.AuthorName || '—' }}
+              @if (instruction.PublishedAt) {
+                · publiée le {{ instruction.PublishedAt | date: 'short' }}
+              }
+            </p>
+          }
+        </li>
+      }
+    </ul>
+
+    <app-pagination
+  [page]="page()"
+  [totalPages]="totalPages()"
+  [totalCount]="totalCount()"
+  ariaLabel="Pagination des consignes"
+  (pageChange)="goToPage($event)"
+/>
+  </app-data-state>
+</section>

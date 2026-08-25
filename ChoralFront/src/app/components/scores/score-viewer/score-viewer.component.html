@@ -1,0 +1,65 @@
+<app-modal [title]="title()" [fullscreen]="true" (closed)="close()">
+  <div class="score-viewer">
+    <div class="score-viewer__toolbar">
+      @if (siblingVersions().length > 1) {
+        <label class="form-label mb-0" for="scoreViewerVersion">Version</label>
+        <select
+          id="scoreViewerVersion"
+          class="form-select form-select-sm score-viewer__versions"
+          (change)="selectVersion($any($event.target).value)"
+        >
+          @for (version of siblingVersions(); track version.Id) {
+            <option [value]="version.Id" [selected]="version.Id === currentId()">{{ version.Version }}</option>
+          }
+        </select>
+      } @else if (current(); as score) {
+        <span class="text-muted small">Version {{ score.Version }}</span>
+      }
+
+      <!-- `10-D5` : le téléchargement est un droit porté par le contenu, pas la façon par
+           défaut de consulter. Bouton absent — et non désactivé — quand il n'est pas accordé. -->
+      @if (canDownload()) {
+        <button type="button" class="btn btn-outline-primary btn-sm ms-auto" (click)="download()">
+          <app-icon [name]="IconNameEnum.Download" size="dense" [ariaLabel]="null" />
+          Télécharger
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="score-viewer__state">
+        <span class="spinner-border" aria-hidden="true"></span>
+        <span>Chargement de la partition...</span>
+      </div>
+    } @else if (error()) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+    } @else if (renderMode() === 'pdf') {
+      @if (safeResourceUrl(); as url) {
+        <!-- `sandbox` : le PDF est déposé par un tiers (responsable de chorale), il est donc
+             confiné. `allow-same-origin` est le SEUL jeton présent, et il est indispensable :
+             sans lui l'iframe reçoit une origine opaque et ne peut pas résoudre une URL
+             `blob:`, qui reste liée à l'origine créatrice — le visualiseur resterait vide.
+             Scripts, formulaires, fenêtres et navigation du parent restent bloqués. -->
+        <iframe
+          class="score-viewer__frame"
+          sandbox="allow-same-origin"
+          [src]="url"
+          [title]="title()"
+        ></iframe>
+      }
+    } @else if (renderMode() === 'image') {
+      @if (objectUrl(); as url) {
+        <div class="score-viewer__image-wrapper">
+          <img class="score-viewer__image" [src]="url" [alt]="title()" />
+        </div>
+      }
+    } @else {
+      <div class="alert alert-warning" role="alert">
+        Ce format ne peut pas être affiché ici.
+        @if (canDownload()) {
+          Téléchargez le fichier pour l'ouvrir avec une autre application.
+        }
+      </div>
+    }
+  </div>
+</app-modal>

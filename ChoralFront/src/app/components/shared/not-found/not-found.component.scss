@@ -1,0 +1,21 @@
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 80vh;
+  text-align: center;
+  color: var(--color-neutral-600);
+}
+
+.not-found__title {
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.not-found__subtitle {
+  margin: 0 0 var(--space-2);
+}

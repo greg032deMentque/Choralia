@@ -1,0 +1,114 @@
+<div class="page song-catalogue">
+  <app-page-header title="Chants" [breadcrumb]="[{ label: 'Administration' }, { label: 'Chants' }]" />
+
+  <div class="row g-2 mb-3 song-catalogue__filters">
+    <div class="col-md-4">
+      <div class="form-check form-switch">
+        <input
+          id="filter-doublons-uniquement"
+          type="checkbox"
+          class="form-check-input"
+          role="switch"
+          [checked]="doublonsUniquement()"
+          (change)="onDuplicatesOnlyChange($any($event.target).checked)"
+        />
+        <label class="form-check-label" for="filter-doublons-uniquement">Doublons uniquement (portés par plusieurs chorales)</label>
+      </div>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSizeSelectable]="true"
+    [pageSize]="pageSize()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    emptyMessage="Aucun chant pour le moment."
+    noResultsMessage="Aucun résultat pour ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (rowClick)="onRowClick($event)"
+  />
+
+  @if (expandedKey()) {
+    <div class="card mt-3 song-catalogue__detail">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h6 mb-0">Chorales portant « {{ expandedTitle() }} »</h2>
+          <button type="button" class="btn-close" aria-label="Fermer le détail" (click)="closeDetail()"></button>
+        </div>
+
+        <app-data-state
+          variant="spinner"
+          [loading]="detailLoading()"
+          [error]="detailError()"
+          [empty]="expandedItems().length === 0"
+          emptyMessage="Aucune chorale trouvée pour ce groupe."
+        >
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Chorale</th>
+                  <th>Client</th>
+                  <th>Statut du chant</th>
+                  <th>Créé le</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (choir of expandedItems(); track choir.ChoirId) {
+                  <tr>
+                    <td>{{ choir.ChoirName }}</td>
+                    <td>{{ choir.ClientName }}</td>
+                    <td>{{ getSongStatusLabel(choir.SongStatus) }}</td>
+                    <td>{{ choir.CreationDate | date: 'short' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </app-data-state>
+      </div>
+    </div>
+  }
+</div>
+
+<ng-template #tplExpand let-item>
+  <app-icon
+    [name]="expandedKey() === item.Key ? IconNameEnum.CaretDown : IconNameEnum.CaretRight"
+    size="dense"
+    [ariaLabel]="expandedKey() === item.Key ? 'Groupe déplié' : 'Groupe replié'"
+  />
+</ng-template>
+
+<ng-template #tplCompositeur let-item>
+  @if (item.Composer) {
+    {{ item.Composer }}
+  } @else {
+    <span
+      class="text-muted fst-italic"
+      title="Compositeur non renseigné : ce chant n'est jamais regroupé avec un autre titre identique, pour éviter de fusionner des œuvres distinctes (ex. deux « Ave Maria » de compositeurs différents)."
+    >
+      Non renseigné — non regroupé
+    </span>
+  }
+</ng-template>
+
+<ng-template #tplNombreChorales let-item>
+  @if (item.ChoirCount >= LARGE_HEADCOUNT_THRESHOLD) {
+    <span class="badge text-bg-primary d-inline-flex align-items-center gap-1">
+      <app-icon [name]="IconNameEnum.Warning" size="dense" [ariaLabel]="null" />
+      {{ item.ChoirCount }}
+    </span>
+  } @else {
+    {{ item.ChoirCount }}
+  }
+</ng-template>

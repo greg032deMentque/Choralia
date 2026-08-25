@@ -1,0 +1,10 @@
+<app-form-field label="Chant" [required]="true">
+  <!-- Option neutre `disabled` : contrairement au filtre des listes, on ne revient jamais à
+       « aucun chant » dans un formulaire où le chant est obligatoire. -->
+  <select class="form-select" [formControl]="control()">
+    <option value="" disabled>Sélectionnez un chant</option>
+    @for (option of options(); track option.Value) {
+      <option [value]="option.Value">{{ option.Label }}</option>
+    }
+  </select>
+</app-form-field>

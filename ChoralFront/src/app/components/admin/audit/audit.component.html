@@ -1,0 +1,100 @@
+<div class="page admin-audit">
+  <app-page-header title="Audit" [breadcrumb]="[{ label: 'Administration' }, { label: 'Audit' }]" />
+
+  <div class="row g-2 mb-3 admin-audit__filters">
+    <div class="col-md-3">
+      <label class="form-label small" for="filter-user-id">Acteur (identifiant)</label>
+      <input
+        id="filter-user-id"
+        type="text"
+        class="form-control"
+        placeholder="Identifiant utilisateur"
+        [value]="filterUserId()"
+        (change)="onUserIdChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="filter-entity-type">Type d'entité</label>
+      <input
+        id="filter-entity-type"
+        type="text"
+        class="form-control"
+        placeholder="ex. Chorale"
+        [value]="filterEntityType()"
+        (change)="onEntityTypeChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="filter-action">Action</label>
+      <input
+        id="filter-action"
+        type="text"
+        class="form-control"
+        placeholder="ex. ChangerStatut"
+        [value]="filterAction()"
+        (change)="onActionChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="filter-date-debut">Depuis le</label>
+      <input
+        id="filter-date-debut"
+        type="date"
+        class="form-control"
+        [value]="filterStartDate()"
+        (change)="onStartDateChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small" for="filter-date-fin">Jusqu'au</label>
+      <input
+        id="filter-date-fin"
+        type="date"
+        class="form-control"
+        [value]="filterEndDate()"
+        (change)="onEndDateChange($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSizeSelectable]="true"
+    [pageSize]="pageSize()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [filterable]="false"
+    [rowClickable]="false"
+    emptyMessage="Aucune entrée d'audit pour le moment."
+    noResultsMessage="Aucun résultat pour ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</div>
+
+<ng-template #tplDate let-item>
+  {{ item.OccurredAt | date: 'short' }}
+</ng-template>
+
+<ng-template #tplActeur let-item>
+  <div class="admin-audit__acteur">
+    <span class="admin-audit__acteur-nom">{{ item.UserFullName }}</span>
+    @if (item.UserEmail) {
+      <span class="admin-audit__acteur-email">{{ item.UserEmail }}</span>
+    }
+  </div>
+</ng-template>
+
+<ng-template #tplEntityId let-item>
+  {{ item.EntityId ?? '—' }}
+</ng-template>
+
+<ng-template #tplDetail let-item>
+  {{ item.Detail ?? '—' }}
+</ng-template>

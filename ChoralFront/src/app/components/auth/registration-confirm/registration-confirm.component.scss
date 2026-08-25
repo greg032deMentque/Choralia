@@ -1,0 +1,49 @@
+.registration-confirm-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: var(--color-neutral-50);
+}
+
+.registration-confirm-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-8);
+}
+
+.registration-confirm-card__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  margin-bottom: var(--space-6);
+}
+
+.registration-confirm-card__brand-name {
+  font-weight: 600;
+  font-size: var(--text-heading-2-size);
+}
+
+.registration-confirm-card__email {
+  font-weight: var(--text-body-medium-weight);
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.registration-confirm-card__hint {
+  color: var(--color-neutral-600);
+  font-size: var(--text-caption-size);
+}
+
+.registration-confirm-card__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  justify-content: center;
+  font-size: var(--text-caption-size);
+}

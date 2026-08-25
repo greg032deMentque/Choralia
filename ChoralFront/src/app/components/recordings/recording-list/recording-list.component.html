@@ -1,0 +1,203 @@
+<div class="page recording-list">
+  <app-page-header title="Enregistrements">
+    @if (canManage() && selectedSongId()) {
+      <button type="button" class="btn btn-primary" (click)="showUploadForm.set(!showUploadForm())">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter un enregistrement
+      </button>
+    }
+  </app-page-header>
+
+  @if (showUploadForm()) {
+    <div class="mb-4">
+      <app-recording-upload-form
+        [songId]="selectedSongId()"
+        (created)="onUploadCreated()"
+        (cancelled)="showUploadForm.set(false)"
+      />
+    </div>
+  }
+
+  <div class="row g-3 mb-4">
+    <app-song-picker
+      attachableLabel="un enregistrement"
+      (songSelected)="onSongChange($event)"
+      (repertoireEmpty)="repertoireEmpty.set($event)"
+      (loadFailed)="error.set('Impossible de charger la liste des chants.')"
+    />
+    <div class="col-md-2">
+      <label for="typeFilter" class="form-label">Type</label>
+      <select id="typeFilter" class="form-select" (change)="onTypeFilterChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (type of allTypes; track type) {
+          <option [value]="type" [selected]="typeFilter() === type">{{ getTypeRecordingLabel(type) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="voicePartFilter" class="form-label">Voix</label>
+      <select id="voicePartFilter" class="form-select" (change)="onVoicePartFilterChange($any($event.target).value)">
+        <option value="">Toutes</option>
+        @for (voicePart of allVoicePart; track voicePart) {
+          <option [value]="voicePart" [selected]="voicePartFilter() === voicePart">{{ getVoicePartLabel(voicePart) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="statusFilter" class="form-label">Statut</label>
+      <select id="statusFilter" class="form-select" (change)="onStatusFilterChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (status of allStatuss; track status) {
+          <option [value]="status" [selected]="statusFilter() === status">{{ getStatusRecordingLabel(status) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="sourceFilter" class="form-label">Source</label>
+      <select id="sourceFilter" class="form-select" (change)="onSourceFilterChange($any($event.target).value)">
+        <option value="">Toutes</option>
+        @for (source of allSources; track source) {
+          <option [value]="source" [selected]="sourceFilter() === source">{{ getSourceRecordingLabel(source) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label for="filterText" class="form-label">Recherche</label>
+      <input id="filterText" type="search" class="form-control" [value]="filterText()" (input)="onFilterTextChange($any($event.target).value)" />
+    </div>
+  </div>
+
+  @if (!selectedSongId()) {
+    <!-- L'échec de chargement du répertoire ne passe plus par app-data-state (rendu seulement
+         quand un chant est sélectionné) : sans ce bloc, l'erreur restait invisible. -->
+    @if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    } @else if (!repertoireEmpty()) {
+      <div class="alert alert-info">Sélectionnez un chant pour afficher ses enregistrements.</div>
+    }
+  } @else {
+    <app-data-state
+      [loading]="loading()"
+      [error]="error()"
+      [empty]="items().length === 0"
+      [emptyIcon]="IconNameEnum.FileMusic"
+      [emptyActionLabel]="canManage() ? 'Ajouter un enregistrement' : null"
+      emptyMessage="Aucun enregistrement pour ce chant."
+      (emptyAction)="showUploadForm.set(true)"
+    >
+      <!-- Tableau propre a cet ecran (edition en ligne avec colspan) : le rendu carte sous
+           768 px vient de la classe partagee `table-cards` (styles.scss). -->
+      <div class="table-responsive table-cards-wrapper">
+        <table class="table table-hover align-middle table-cards">
+          <thead>
+            <tr>
+              <th>Propriétaire</th>
+              <th>Type</th>
+              <th>Voix</th>
+              <th class="cell--hide-mobile">Source</th>
+              <th>Durée</th>
+              <th>Statut</th>
+              <th class="cell--hide-mobile">Publié le</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (recording of items(); track recording.Id) {
+              <tr>
+                @if (editingId() === recording.Id) {
+                  <td>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      [value]="editContentOwner()"
+                      (input)="editContentOwner.set($any($event.target).value)"
+                    />
+                  </td>
+                  <td colspan="4" data-label="Téléchargement">
+                    <div class="form-check">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        [id]="'editTda-' + recording.Id"
+                        [checked]="editDownloadAllowed()"
+                        (change)="editDownloadAllowed.set($any($event.target).checked)"
+                      />
+                      <label class="form-check-label" [for]="'editTda-' + recording.Id">Téléchargement autorisé</label>
+                    </div>
+                  </td>
+                  <td data-label="Statut">{{ getStatusRecordingLabel(recording.Status) }}</td>
+                  <td data-label="Publié le" class="cell--hide-mobile">{{ recording.PublicationDate ? (recording.PublicationDate | date: 'short') : '—' }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="recording-list__actions">
+                      <button type="button" class="btn btn-sm btn-primary" (click)="saveEdit(recording)">Enregistrer</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelEdit()">Annuler</button>
+                    </div>
+                  </td>
+                } @else {
+                  <td data-label="Propriétaire">{{ recording.ContentOwner }}</td>
+                  <td data-label="Type">{{ getTypeRecordingLabel(recording.Type) }}</td>
+                  <td data-label="Voix">{{ recording.TargetVoicePart === null ? '—' : getVoicePartLabel(recording.TargetVoicePart) }}</td>
+                  <td data-label="Source" class="cell--hide-mobile">{{ getSourceRecordingLabel(recording.Source) }}</td>
+                  <td data-label="Durée">{{ recording.DurationSeconds }} s</td>
+                  <td data-label="Statut">
+                    <span
+                      class="status-badge"
+                      [class.status-badge--draft]="recording.Status === RecordingStatusEnum.Draft"
+                      [class.status-badge--pending]="recording.Status === RecordingStatusEnum.PendingReview"
+                      [class.status-badge--published]="recording.Status === RecordingStatusEnum.Published"
+                      [class.status-badge--archived]="recording.Status === RecordingStatusEnum.Archived"
+                    >
+                      {{ getStatusRecordingLabel(recording.Status) }}
+                    </span>
+                  </td>
+                  <td data-label="Publié le" class="cell--hide-mobile">{{ recording.PublicationDate ? (recording.PublicationDate | date: 'short') : '—' }}</td>
+                  <td data-label="Actions" class="text-end">
+                    <div class="recording-list__actions">
+                      <!-- `10-D5` : bouton absent quand l'enregistrement n'autorise pas le
+                           téléchargement — jamais désactivé. -->
+                      @if (recording.DownloadAllowed) {
+                        <button type="button" class="btn-icon" (click)="download(recording)" aria-label="Télécharger">
+                          <app-icon [name]="IconNameEnum.Download" size="dense" />
+                        </button>
+                      }
+                      @if (canManage() && recording.Status === RecordingStatusEnum.Draft) {
+                        <button type="button" class="btn-icon" (click)="startEdit(recording)" aria-label="Modifier">
+                          <app-icon [name]="IconNameEnum.Pencil" size="dense" />
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="sendAValidation(recording)">
+                          Envoyer à validation
+                        </button>
+                      }
+                      @if (canPublish() && recording.Status === RecordingStatusEnum.PendingReview) {
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="publish(recording)">Publier</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="reject(recording)">Rejeter</button>
+                      }
+                      @if (canManage()) {
+                        @if (recording.Status !== RecordingStatusEnum.Archived) {
+                          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="archive(recording)">Archiver</button>
+                        } @else {
+                          <button type="button" class="btn btn-sm btn-outline-primary" (click)="restore(recording)">Restaurer</button>
+                        }
+                        <button type="button" class="btn-icon" (click)="deleteRecording(recording)" aria-label="Supprimer">
+                          <app-icon [name]="IconNameEnum.Trash" size="dense" />
+                        </button>
+                      }
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-pagination
+  [page]="page()"
+  [totalPages]="totalPages()"
+  [totalCount]="totalCount()"
+  ariaLabel="Pagination des enregistrements"
+  (pageChange)="goToPage($event)"
+/>
+    </app-data-state>
+  }
+</div>

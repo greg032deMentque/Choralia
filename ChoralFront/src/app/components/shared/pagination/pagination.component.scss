@@ -1,0 +1,12 @@
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.pagination-bar__count {
+  font-size: var(--text-caption-size);
+  color: var(--color-neutral-600);
+}

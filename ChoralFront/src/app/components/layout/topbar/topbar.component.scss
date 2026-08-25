@@ -1,0 +1,144 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  // Aligné sur la hauteur réelle de l'en-tête de sidebar (tokens.scss --layout-header-height) —
+  // pas l'inverse : le bouton replier de la sidebar (44px, cible tactile) reste à sa taille.
+  height: var(--layout-header-height);
+  padding: 0 var(--space-6);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+// Le bouton de menu n'existe qu'en dessous de 1024 px : au-dessus, la barre latérale est
+// toujours à l'écran et un second point d'entrée vers la même navigation prêterait à confusion.
+.topbar__nav-toggle {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .topbar {
+    padding: 0 var(--space-4);
+  }
+
+  .topbar__nav-toggle {
+    display: inline-flex;
+  }
+
+  // Le nom de l'utilisateur passe à la trappe avant son avatar : l'avatar suffit à identifier
+  // la session, le nom complet est un confort de grand écran.
+  .topbar__user-name {
+    display: none;
+  }
+
+  .topbar__selector-label {
+    max-width: 140px;
+  }
+}
+
+.topbar__chorale-selector,
+.topbar__user-menu {
+  position: relative;
+}
+
+.topbar__selector-btn,
+.topbar__user-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  color: var(--text-primary);
+
+  &:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--border-subtle);
+  }
+}
+
+.topbar__selector-label {
+  font-size: var(--text-body-medium-size);
+  font-weight: 500;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--action-bg);
+  color: var(--action-fg);
+  font-size: var(--text-caption-size);
+  font-weight: 600;
+}
+
+.topbar__user-name {
+  font-size: var(--text-body-medium-size);
+}
+
+.topbar__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  min-width: 200px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-2);
+  z-index: 20;
+}
+
+.topbar__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: var(--text-body-size);
+
+  &:hover {
+    background-color: var(--bg-hover);
+  }
+}
+
+.topbar__dropdown-item--active {
+  color: var(--action-bg);
+  font-weight: 500;
+}
+
+.topbar__dropdown-separator {
+  height: 1px;
+  margin: var(--space-2) 0;
+  background-color: var(--border-subtle);
+}
+
+.topbar__dropdown-label {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-overline-size);
+  font-weight: var(--text-overline-weight);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

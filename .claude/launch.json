@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "ChoraleBack/Chorale.Api", "--launch-profile", "http"],
+      "port": 5058
+    },
+    {
+      "name": "front",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "ChoralFront", "start"],
+      "port": 4200
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+.client-detail {
+  padding: var(--space-4);
+}
+
+.client-detail__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  margin: 0;
+}
+
+.client-detail__form {
+  max-width: 480px;
+}
+
+.client-detail__plafonds .card-title {
+  margin-bottom: var(--space-2);
+}

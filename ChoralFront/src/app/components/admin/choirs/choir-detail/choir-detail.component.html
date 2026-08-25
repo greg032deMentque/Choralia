@@ -1,0 +1,218 @@
+<div class="page choir-detail">
+  <a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminChoirs]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux chorales
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error() && !detail() ? error() : null" [empty]="!detail()" emptyMessage="Chorale introuvable." variant="spinner">
+    @if (detail(); as detail) {
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">{{ error() }}</div>
+      }
+
+      <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+          <h1 class="choir-detail__title">{{ detail.Name }}</h1>
+          <div class="text-muted">{{ detail.ClientName }}</div>
+          <div class="mt-2">
+            <span
+              class="badge"
+              [class.text-bg-secondary]="detail.Status === ChoirStatusEnum.Draft"
+              [class.text-bg-success]="detail.Status === ChoirStatusEnum.Published"
+              [class.text-bg-warning]="detail.Status === ChoirStatusEnum.Cancelled"
+              [class.text-bg-dark]="detail.Status === ChoirStatusEnum.Archived"
+            >
+              {{ getStatusChoirLabel(detail.Status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-start gap-2">
+          @for (target of transitionsAllowed(); track target) {
+            <button type="button" class="btn btn-outline-secondary btn-sm" [appSubmitOnce]="statusAction(target)">
+              {{ getStatusChoirLabel(target) }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <nav class="nav nav-tabs mb-3" role="tablist" aria-label="Pupitres de la fiche chorale">
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'information'" (click)="selectTab('information')">
+          Informations
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'members'" (click)="selectTab('members')">
+          Membres ({{ detail.MemberCount }})
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'songs'" (click)="selectTab('songs')">
+          Chants ({{ detail.SongCount }})
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'events'" (click)="selectTab('events')">
+          Événements ({{ detail.EventCount }})
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'limits'" (click)="selectTab('limits')">
+          Plafonds du client
+        </button>
+      </nav>
+
+      @switch (activeTab()) {
+        @case ('information') {
+          @if (!editingInformations()) {
+            <div class="mb-3">
+              <p>{{ detail.Description || 'Aucune description.' }}</p>
+              <p class="text-muted small">Créée le {{ detail.CreatedAt | date: 'short' }}</p>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEditInformations()">
+                <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="'Modifier'" />
+                Modifier les informations
+              </button>
+            </div>
+          } @else {
+            <form [formGroup]="form" class="choir-detail__form mb-4">
+              <app-form-field label="Nom" [required]="true">
+                <input type="text" class="form-control" formControlName="name" />
+              </app-form-field>
+              <app-form-field label="Description">
+                <textarea class="form-control" rows="3" formControlName="description"></textarea>
+              </app-form-field>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" [appSubmitOnce]="submitInformations">Enregistrer</button>
+                <button type="button" class="btn btn-outline-secondary" (click)="cancelEditInformations()">Annuler</button>
+              </div>
+            </form>
+          }
+        }
+        @case ('members') {
+          <app-data-table
+            [columns]="membersColumns()"
+            [items]="membersItems()"
+            [totalCount]="membersTotalCount()"
+            [page]="membersPage()"
+            [pageSize]="10"
+            [loading]="membersLoading()"
+            emptyMessage="Aucun membre dans cette chorale."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (pageChange)="onMembersPageChange($event)"
+            (filterChange)="onMembersFilterChange($event)"
+          />
+        }
+        @case ('songs') {
+          <app-data-table
+            [columns]="songsColumns()"
+            [items]="songsItems()"
+            [totalCount]="songsTotalCount()"
+            [page]="songsPage()"
+            [pageSize]="10"
+            [loading]="songsLoading()"
+            emptyMessage="Aucun chant dans cette chorale."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (pageChange)="onSongsPageChange($event)"
+            (filterChange)="onSongsFilterChange($event)"
+          />
+        }
+        @case ('events') {
+          <app-data-table
+            [columns]="eventsColumns()"
+            [items]="eventsItems()"
+            [totalCount]="eventsTotalCount()"
+            [page]="eventsPage()"
+            [pageSize]="10"
+            [loading]="eventsLoading()"
+            emptyMessage="Aucun événement pour cette chorale."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (pageChange)="onEventsPageChange($event)"
+            (filterChange)="onEventsFilterChange($event)"
+          />
+        }
+        @case ('limits') {
+          <div class="row g-3 choir-detail__plafonds">
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Chorales</h3>
+                  <p class="mb-1">{{ detail.ClientChoirCount }} / {{ detail.ClientChoirLimit }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.ClientChoirCount, detail.ClientChoirLimit)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(detail.ClientChoirCount, detail.ClientChoirLimit)"
+                      [style.width.%]="percentageUsage(detail.ClientChoirCount, detail.ClientChoirLimit)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(detail.ClientChoirCount, detail.ClientChoirLimit)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Membres</h3>
+                  <p class="mb-1">{{ detail.ClientMemberCount }} / {{ detail.ClientMemberLimit }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.ClientMemberCount, detail.ClientMemberLimit)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(detail.ClientMemberCount, detail.ClientMemberLimit)"
+                      [style.width.%]="percentageUsage(detail.ClientMemberCount, detail.ClientMemberLimit)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(detail.ClientMemberCount, detail.ClientMemberLimit)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Stockage</h3>
+                  <p class="mb-1">{{ formatBytes(detail.ClientUsedStorageBytes) }} / {{ formatBytes(detail.ClientStorageQuotaBytes) }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.ClientUsedStorageBytes, detail.ClientStorageQuotaBytes)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(detail.ClientUsedStorageBytes, detail.ClientStorageQuotaBytes)"
+                      [style.width.%]="percentageUsage(detail.ClientUsedStorageBytes, detail.ClientStorageQuotaBytes)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(detail.ClientUsedStorageBytes, detail.ClientStorageQuotaBytes)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      }
+    }
+  </app-data-state>
+</div>
+
+<ng-template #tplMemberRoles let-item>
+  {{ item.Roles.length === 0 ? '—' : getUserRolesLabel(item.Roles) }}
+</ng-template>
+
+<ng-template #tplMemberVoicePart let-item>
+  {{ item.SectionVoicePart === null ? '—' : getVoicePartLabel(item.SectionVoicePart) }}
+</ng-template>
+
+<ng-template #tplMemberStatus let-item>
+  <span class="badge text-bg-light">{{ getMemberStatusLabel(item.Status) }}</span>
+</ng-template>
+
+<ng-template #tplSongStatus let-item>
+  <span class="badge text-bg-light">{{ getSongStatusLabel(item.Status) }}</span>
+</ng-template>
+
+<ng-template #tplSongPriority let-item>
+  {{ item.Priority === null ? '—' : getPrioritySongLabel(item.Priority) }}
+</ng-template>
+
+<ng-template #tplEvenementDate let-item>
+  {{ item.StartDate | date: 'medium' }}
+</ng-template>
+
+<ng-template #tplEvenementType let-item>
+  {{ getEventTypeLabel(item.Type) }}
+</ng-template>
+
+<ng-template #tplEvenementStatut let-item>
+  <span class="badge text-bg-light">{{ getEventStatusLabel(item.Status) }}</span>
+</ng-template>

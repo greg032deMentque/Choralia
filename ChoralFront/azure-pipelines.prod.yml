@@ -1,0 +1,40 @@
+# Deploiement du front en production. Les etapes de build sont dans
+# templates/build-and-test.yml, partagees avec azure-pipelines.ci.yml (branche dev).
+
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - ChoralFront/**
+
+pr: none
+
+variables:
+  # Chemin par defaut du builder @angular/build:application pour le projet `chorale-web`
+  # (aucun outputPath declare dans angular.json). C'est ce dossier, deja construit, qui
+  # est envoye tel quel : le build Oryx d'Azure est court-circuite par skip_app_build.
+  outputDir: 'ChoralFront/dist/chorale-web/browser'
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+  - stage: BuildAndDeploy
+    displayName: Build & Deploy → Production
+    jobs:
+      - job: BuildDeployJob
+        displayName: Install · Lint · Test · Build · Deploy
+        steps:
+
+          - template: templates/build-and-test.yml
+
+          - task: AzureStaticWebApp@0
+            displayName: Deploy → Azure Static Web Apps
+            inputs:
+              app_location: $(outputDir)
+              output_location: ''
+              skip_app_build: true
+              azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)

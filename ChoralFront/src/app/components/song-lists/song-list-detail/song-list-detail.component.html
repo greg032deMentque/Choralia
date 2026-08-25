@@ -1,0 +1,151 @@
+<div class="page song-list-detail">
+  <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.SongLists]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux listes de chants
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error()" [empty]="!songList()" emptyMessage="Liste de chants introuvable.">
+    @if (songList(); as songList) {
+      @if (editing()) {
+        <app-song-list-form [songList]="songList" (saved)="onFormSaved($event)" (cancelled)="onFormCancelled()" />
+      } @else {
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="song-list-detail__title">{{ songList.Name }}</h1>
+            <span class="badge text-bg-light me-2">{{ getTypeListLabel(songList.Type) }}</span>
+            <span
+              class="badge"
+              [class.text-bg-secondary]="songList.Status === SongListStatusEnum.Draft"
+              [class.text-bg-success]="songList.Status === SongListStatusEnum.Published"
+              [class.text-bg-dark]="songList.Status === SongListStatusEnum.Archived"
+            >
+              {{ getStatusListLabel(songList.Status) }}
+            </span>
+            @if (songList.Description) {
+              <p class="mt-2 mb-0">{{ songList.Description }}</p>
+            }
+          </div>
+          @if (canManageComposition()) {
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEdit()">
+                <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="null" />
+                Modifier
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteSongList()">
+                <app-icon [name]="IconNameEnum.Trash" size="dense" [ariaLabel]="null" />
+                Supprimer
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (canManageWorkflow()) {
+          <div class="d-flex gap-2 flex-wrap mb-4">
+            @if (songList.Status !== SongListStatusEnum.Published) {
+              <button type="button" class="btn btn-success btn-sm" [disabled]="composingAction()" (click)="publish()">
+                <app-icon [name]="IconNameEnum.CheckCircle" size="dense" [ariaLabel]="null" />
+                Publier
+              </button>
+            }
+            @if (songList.Status !== SongListStatusEnum.Archived) {
+              <button type="button" class="btn btn-outline-dark btn-sm" [disabled]="composingAction()" (click)="archive()">
+                <app-icon [name]="IconNameEnum.Archive" size="dense" [ariaLabel]="null" />
+                Archiver
+              </button>
+            }
+            @if (songList.Status !== SongListStatusEnum.Draft) {
+              <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="composingAction()" (click)="repasserEnDraft()">
+                Repasser en brouillon
+              </button>
+            }
+          </div>
+        }
+      }
+
+      <section>
+        <h2 class="song-list-detail__section-title">Composition ({{ sortedSongs().length }} chant(s))</h2>
+
+        @if (canManageComposition()) {
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <select class="form-select" [value]="selectedSongIdToAdd()" (change)="onSelectedSongChange($any($event.target).value)">
+                <option value="">Sélectionner un chant à ajouter</option>
+                @for (option of availableSongOptions(); track option.Value) {
+                  <option [value]="option.Value">{{ option.Label }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-auto">
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                [disabled]="!selectedSongIdToAdd() || composingAction()"
+                (click)="addSong()"
+              >
+                <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+                Ajouter
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Titre</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (song of sortedSongs(); track song.SongId; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ song.SongTitle }}</td>
+                  <td class="text-end">
+                    @if (canReorder()) {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary me-1 song-list-detail__caret-up"
+                        [disabled]="i === 0 || composingAction()"
+                        (click)="monter(i)"
+                        aria-label="Monter"
+                      >
+                        <app-icon [name]="IconNameEnum.CaretDown" size="dense" [ariaLabel]="null" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary me-1"
+                        [disabled]="i === sortedSongs().length - 1 || composingAction()"
+                        (click)="descendre(i)"
+                        aria-label="Descendre"
+                      >
+                        <app-icon [name]="IconNameEnum.CaretDown" size="dense" [ariaLabel]="null" />
+                      </button>
+                    }
+                    @if (canManageComposition()) {
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        [disabled]="composingAction()"
+                        (click)="removeSong(song.SongId)"
+                        aria-label="Retirer"
+                      >
+                        <app-icon [name]="IconNameEnum.X" size="dense" [ariaLabel]="null" />
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3" class="text-muted text-center py-3">Aucun chant dans cette liste.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  </app-data-state>
+</div>

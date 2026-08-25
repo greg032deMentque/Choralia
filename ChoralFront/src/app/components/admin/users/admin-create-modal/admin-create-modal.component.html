@@ -1,0 +1,32 @@
+<app-modal title="Créer un administrateur" (closed)="cancel()">
+  <form [formGroup]="form">
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">{{ error() }}</div>
+      }
+
+      <app-form-field label="Prénom" [required]="true">
+        <input type="text" class="form-control" formControlName="firstname" />
+      </app-form-field>
+
+      <app-form-field label="Nom" [required]="true">
+        <input type="text" class="form-control" formControlName="lastname" />
+      </app-form-field>
+
+      <app-form-field label="Email" [required]="true">
+        <input type="email" class="form-control" formControlName="email" />
+      </app-form-field>
+
+      <app-form-field
+        label="Mot de passe"
+        [required]="true"
+        warning="Au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
+      >
+        <input type="password" class="form-control" formControlName="password" autocomplete="new-password" />
+      </app-form-field>
+
+    <div class="d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Annuler</button>
+      <button type="button" class="btn btn-primary" [appSubmitOnce]="submitAction">Créer</button>
+    </div>
+  </form>
+</app-modal>

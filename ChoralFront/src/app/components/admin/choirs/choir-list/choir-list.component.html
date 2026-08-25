@@ -1,0 +1,84 @@
+<div class="page choir-list">
+  <app-page-header title="Chorales" [breadcrumb]="[{ label: 'Administration' }, { label: 'Chorales' }]" />
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    [filterPanel]="true"
+    [pageSizeSelectable]="true"
+    [activeFilters]="activeFilters()"
+    emptyMessage="Aucune chorale pour le moment."
+    noResultsMessage="Aucun résultat pour ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (filterRemove)="onFilterRemove($event)"
+    (rowClick)="onRowClick($event)"
+  >
+    <div data-table-filters class="row g-3">
+      <!-- Sélection du client par son nom : un administrateur ne connaît pas l'identifiant
+           technique d'un client, et cet écran ne lui donnait aucun moyen de le retrouver. -->
+      <div class="col-md-4">
+        <label class="form-label" for="filter-client">Client</label>
+        <select
+          id="filter-client"
+          class="form-select"
+          [disabled]="clientsLoading()"
+          (change)="onClientChange($any($event.target).value)"
+        >
+          <option value="">Tous les clients</option>
+          @for (client of clients(); track client.Id) {
+            <option [value]="client.Id" [selected]="filterClientId() === client.Id">{{ client.Name }}</option>
+          }
+        </select>
+        @if (clientsError()) {
+          <div class="choir-list__filter-error">{{ clientsError() }}</div>
+        }
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="filter-status">Statut</label>
+        <select id="filter-status" class="form-select" (change)="onStatusChange($any($event.target).value)">
+          <option value="">Tous</option>
+          @for (status of allStatuss; track status) {
+            <option [value]="status" [selected]="filterStatus() === status">{{ getStatusChoirLabel(status) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="filter-inactive">Activité</label>
+        <select id="filter-inactive" class="form-select" (change)="onInactive30jChange($any($event.target).value)">
+          <option value="">Toutes</option>
+          <option value="true" [selected]="filterInactive30j() === 'true'">Inactive depuis 30 jours</option>
+          <option value="false" [selected]="filterInactive30j() === 'false'">Active sur 30 jours</option>
+        </select>
+      </div>
+    </div>
+  </app-data-table>
+</div>
+
+<ng-template #tplStatus let-item>
+  <span
+    class="status-badge"
+    [class.status-badge--draft]="item.Status === ChoirStatusEnum.Draft"
+    [class.status-badge--published]="item.Status === ChoirStatusEnum.Published"
+    [class.status-badge--cancelled]="item.Status === ChoirStatusEnum.Cancelled"
+    [class.status-badge--archived]="item.Status === ChoirStatusEnum.Archived"
+  >
+    {{ getStatusChoirLabel(item.Status) }}
+  </span>
+</ng-template>
+
+<ng-template #tplLastActivity let-item>
+  {{ item.LastActivityAt | date: 'short' }}
+</ng-template>

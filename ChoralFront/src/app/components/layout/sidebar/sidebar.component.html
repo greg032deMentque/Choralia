@@ -1,0 +1,95 @@
+<nav
+  class="sidebar"
+  [class.sidebar--collapsed]="collapsed()"
+  [class.sidebar--open]="mobileOpen()"
+  aria-label="Navigation principale"
+>
+  <div class="sidebar__header">
+    <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+    @if (!collapsed()) {
+      <!-- L'espace actif domine, le nom du produit passe en second (Spec §0 : l'utilisateur
+           est chez lui, pas chez nous). -->
+      <div class="sidebar__header-text">
+        <span class="sidebar__space-name">{{ activeSpaceName() }}</span>
+        <span class="sidebar__brand">Choralia</span>
+      </div>
+    }
+    <!-- Deux boutons, un par format : replier (≥ 1024 px) et fermer le tiroir (< 1024 px).
+         La bascule est purement CSS — pas de détection de largeur en TypeScript. -->
+    <button
+      type="button"
+      class="sidebar__collapse-btn"
+      (click)="onToggleCollapse()"
+      [attr.aria-label]="collapsed() ? 'Déplier la navigation' : 'Replier la navigation'"
+    >
+      <app-icon [name]="collapsed() ? IconNameEnum.CaretRight : IconNameEnum.CaretLeft" size="dense" />
+    </button>
+    <button
+      type="button"
+      class="sidebar__close-btn btn-icon"
+      (click)="onClose()"
+      aria-label="Fermer la navigation"
+    >
+      <app-icon [name]="IconNameEnum.X" size="dense" />
+    </button>
+  </div>
+
+  <ul class="sidebar__nav">
+    @for (item of navItems(); track item.Path) {
+      <li class="sidebar__nav-item">
+        @if (item.Children && item.Children.length > 0) {
+          <div class="sidebar__nav-parent">
+            <a
+              [routerLink]="item.Path"
+              routerLinkActive="sidebar__nav-link--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="sidebar__nav-link sidebar__nav-link--parent"
+            >
+              <app-icon [name]="item.Icon" size="nav" [ariaLabel]="collapsed() ? item.Label : null" />
+              @if (!collapsed()) {
+                <span class="sidebar__nav-label">{{ item.Label }}</span>
+              }
+            </a>
+            @if (!collapsed()) {
+              <button
+                type="button"
+                class="sidebar__section-toggle btn-icon"
+                (click)="toggleSection(item.Label)"
+                [attr.aria-expanded]="isSectionExpanded(item.Label)"
+                [attr.aria-label]="(isSectionExpanded(item.Label) ? 'Replier ' : 'Déplier ') + item.Label"
+              >
+                <app-icon
+                  [name]="isSectionExpanded(item.Label) ? IconNameEnum.CaretDown : IconNameEnum.CaretRight"
+                  size="dense"
+                />
+              </button>
+            }
+          </div>
+          @if (!collapsed() && isSectionExpanded(item.Label)) {
+            <ul class="sidebar__sub-nav">
+              @for (child of item.Children; track child.Path) {
+                <li>
+                  <a [routerLink]="child.Path" routerLinkActive="sidebar__nav-link--active" class="sidebar__nav-link sidebar__nav-link--child">
+                    <app-icon [name]="child.Icon" size="dense" />
+                    <span class="sidebar__nav-label">{{ child.Label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <a [routerLink]="item.Path" routerLinkActive="sidebar__nav-link--active" class="sidebar__nav-link">
+            <app-icon [name]="item.Icon" size="nav" [ariaLabel]="collapsed() ? item.Label : null" />
+            @if (!collapsed()) {
+              <span class="sidebar__nav-label">{{ item.Label }}</span>
+            }
+            @if (item.Badge && item.Badge > 0) {
+              <span class="badge text-bg-danger sidebar__nav-badge" [attr.aria-label]="item.Badge + ' en attente'">{{ item.Badge }}</span>
+            }
+          </a>
+        }
+      </li>
+    }
+  </ul>
+
+</nav>

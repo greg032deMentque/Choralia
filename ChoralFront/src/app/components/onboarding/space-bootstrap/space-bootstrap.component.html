@@ -1,0 +1,78 @@
+<div class="space-bootstrap">
+  <div class="space-bootstrap__header">
+    <app-icon [name]="IconNameEnum.CheckCircle" size="empty-state" [ariaLabel]="null" />
+    <h1 class="space-bootstrap__title">{{ spaceName() }} est prêt(e) !</h1>
+    <p class="space-bootstrap__subtitle">Invitez vos premiers membres pour démarrer.</p>
+  </div>
+
+  <section class="space-bootstrap__section">
+    <h2 class="space-bootstrap__section-title">Inviter par email</h2>
+
+    @if (spaceType() === SpaceTypeEnum.Choir) {
+      <form [formGroup]="inviteForm" novalidate class="d-flex flex-column gap-3">
+        <div class="row g-2">
+          <div class="col-md-5">
+            <app-form-field label="Email" [required]="true">
+              <input type="email" class="form-control" formControlName="email" placeholder="email@exemple.fr" />
+            </app-form-field>
+          </div>
+          <div class="col-md-3">
+            <app-form-field label="Prénom">
+              <input type="text" class="form-control" formControlName="firstname" />
+            </app-form-field>
+          </div>
+          <div class="col-md-4">
+            <app-form-field label="Nom">
+              <input type="text" class="form-control" formControlName="lastname" />
+            </app-form-field>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-outline-primary align-self-start"
+          #inviteButton="appSubmitOnce"
+          [appSubmitOnce]="submitInviteChoir"
+        >
+          <app-icon [name]="IconNameEnum.UserPlus" size="dense" [ariaLabel]="null" />
+          Envoyer l'invitation
+        </button>
+      </form>
+    } @else {
+      <form
+        [formGroup]="inviteForm"
+        (ngSubmit)="sendInvitationEvent()"
+        novalidate
+        class="d-flex flex-wrap gap-2 align-items-start"
+      >
+        <div class="flex-grow-1">
+          <input
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="email@exemple.fr"
+            [class.is-invalid]="inviteForm.controls.email.invalid && inviteForm.controls.email.touched"
+          />
+          @if (inviteForm.controls.email.invalid && inviteForm.controls.email.touched) {
+            <div class="invalid-feedback">Email invalide — vérifiez le format.</div>
+          }
+        </div>
+        <button type="submit" class="btn btn-outline-primary">Préparer l'invitation</button>
+      </form>
+
+      @if (mailtoHref()) {
+        <a [href]="mailtoHref()" class="btn btn-primary mt-2">
+          <app-icon [name]="IconNameEnum.UserPlus" size="dense" [ariaLabel]="null" />
+          Ouvrir dans ma messagerie
+        </a>
+      }
+    }
+  </section>
+
+  <section class="space-bootstrap__section">
+    <h2 class="space-bootstrap__section-title">Code de rattachement</h2>
+    <p class="space-bootstrap__hint">Toute demande via ce code passe par votre validation.</p>
+    <app-join-code-panel [spaceId]="spaceId()" />
+  </section>
+
+  <a [routerLink]="dashboardLink()" class="btn btn-primary w-100 mt-4">Aller à mon tableau de bord</a>
+</div>

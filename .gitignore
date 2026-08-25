@@ -1,0 +1,73 @@
+# ChoraleHelper — fichiers generes, jamais versionnes.
+# ChoralFront/.gitignore complete ce fichier pour les specificites Angular.
+
+# --- .NET : sorties de build ---
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.dll
+*.pdb
+*.exe
+
+# --- Visual Studio / Rider / VS Code ---
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.DotSettings.user
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# --- Sorties front ---
+dist/
+.angular/cache/
+coverage/
+
+# --- Runtime : logs et fichiers deposes par les utilisateurs ---
+# Les uploads sont du contenu de chorale : jamais dans le depot.
+Logs/
+logs/
+uploads/
+storage/
+
+# Cles Data Protection : elles chiffrent les jetons des liens email (invitation,
+# activation, verification). Les versionner reviendrait a publier de quoi forger
+# un lien d'activation valide pour n'importe quel compte.
+DataProtection-Keys/
+
+# --- Secrets et configuration locale ---
+# appsettings.json est versionne avec ses placeholders <REPLACE_WITH_...>.
+# Les valeurs reelles vivent :
+#   - en local : dans appsettings.Development.json, non versionne. Partir de
+#     appsettings.Development.example.json (versionne) et remplir.
+#   - en staging/prod : dans les Application Settings Azure App Service, qui
+#     ecrasent la configuration du package deploye.
+# Ce .gitignore est desormais la seule barriere entre un secret local et le
+# depot : ne jamais forcer l'ajout de ces fichiers avec `git add -f`.
+appsettings.Development.json
+appsettings.Staging.json
+appsettings.Production.json
+appsettings.Development.local.json
+appsettings.Local.json
+*.env
+.env.*
+!.env.example
+
+# --- Systeme ---
+.DS_Store
+Thumbs.db
+desktop.ini

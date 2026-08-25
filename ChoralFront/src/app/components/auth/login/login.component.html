@@ -1,0 +1,89 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-card__brand">
+      <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+      <span class="login-card__brand-name">Choralia</span>
+    </div>
+
+    <h1 class="login-card__title">Connexion</h1>
+    <p class="login-card__subtitle">Accédez à la gestion de votre chorale.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
+      <div class="mb-4">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          class="form-control"
+          formControlName="email"
+          autocomplete="email"
+          [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched"
+        />
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          <div class="invalid-feedback">Email invalide — vérifiez le format.</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Mot de passe</label>
+        <div class="input-group">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            autocomplete="current-password"
+            [class.is-invalid]="form.controls.password.invalid && form.controls.password.touched"
+          />
+          <button
+            type="button"
+            class="btn-icon"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-pressed]="showPassword()"
+            [attr.aria-label]="
+              showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+            "
+          >
+            <app-icon
+              [name]="showPassword() ? IconNameEnum.EyeSlash : IconNameEnum.Eye"
+              size="inline"
+            />
+          </button>
+        </div>
+        <!-- Hors du `.input-group` : à l'intérieur, Bootstrap en fait un élément flex et
+             casse les rayons de bordure du bouton en état d'erreur. -->
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <div class="login-form__error">Mot de passe requis.</div>
+        }
+      </div>
+
+      <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div class="form-check">
+          <input
+            id="rememberMe"
+            type="checkbox"
+            class="form-check-input"
+            formControlName="rememberMe"
+          />
+          <label for="rememberMe" class="form-check-label">Se souvenir de moi</label>
+        </div>
+      </div>
+      <div class="mb-4 d-flex justify-content-between align-items-center">
+        <a [routerLink]="'/' + RoutePaths.ForgotPassword" class="login-form__forgot-link"
+          >Mot de passe oublié ?</a
+        >
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+      }
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        }
+        Se connecter
+      </button>
+    </form>
+  </div>
+</div>

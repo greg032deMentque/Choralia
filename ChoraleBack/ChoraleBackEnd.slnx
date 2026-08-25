@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Chorale.Api/ChoraleBackEnd.Api.csproj" />
+  <Project Path="Chorale.Common/ChoraleBackEnd.Common.csproj" />
+  <Project Path="Chorale.Data/ChoraleBackEnd.Data.csproj" />
+  <Project Path="Chorale.Services/ChoraleBackEnd.Services.csproj" />
+  <Project Path="Chorale.Test/ChoraleBackEnd.Test.csproj" />
+  <Project Path="Chorale.ViewModels/ChoraleBackEnd.ViewModels.csproj" />
+</Solution>

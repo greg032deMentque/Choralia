@@ -1,0 +1,149 @@
+.admin-dashboard {
+  padding: var(--space-4);
+}
+
+.admin-dashboard__section {
+  margin-bottom: var(--space-6);
+}
+
+.admin-dashboard__section-title {
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-heading-2-weight);
+  margin: 0 0 var(--space-3);
+}
+
+.admin-dashboard-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  width: 100%;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: box-shadow var(--duration-base) var(--easing-standard);
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-md);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+// Tuile à 0 (ou purement informationnelle, ex. stockage total) : jamais cliquable, doit se
+// distinguer visuellement d'une tuile actionnable (Q24).
+.admin-dashboard-tile--empty,
+.admin-dashboard-tile--info {
+  cursor: default;
+  box-shadow: var(--shadow-none);
+
+  // L'opacité portait sur la tuile entière : le libellé (--color-neutral-600, 5,5:1 sur fond
+  // blanc) tombait à ~2,4:1, sous le seuil AA de 4,5:1 exigé par 11-ux-ui §7.2 pour un texte
+  // porteur d'information. Seule la valeur chiffrée est estompée — la distinction visuelle
+  // avec une tuile actionnable reste portée par le curseur et l'absence d'ombre.
+  .admin-dashboard-tile__value {
+    opacity: 0.55;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-none);
+  }
+}
+
+.admin-dashboard-tile--inline {
+  width: auto;
+  display: inline-flex;
+}
+
+.admin-dashboard-tile__value {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  color: var(--text-primary);
+}
+
+.admin-dashboard-tile__label {
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+}
+
+.admin-dashboard-anomalie {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background-color: var(--status-pending-bg);
+  border: 1px solid var(--state-warning);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
+  color: var(--status-pending-fg);
+}
+
+.admin-dashboard-anomalie--empty {
+  opacity: 0.55;
+}
+
+.admin-dashboard-anomalie__btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: var(--text-body-medium-weight);
+  color: inherit;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.admin-dashboard-panel {
+  margin-top: var(--space-3);
+  background-color: var(--bg-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.admin-dashboard-panel__hint {
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.admin-dashboard-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.admin-dashboard-purge {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+}
+
+.admin-dashboard-purge__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.admin-dashboard-purge__count {
+  font-size: var(--text-body-medium-size);
+  color: var(--text-primary);
+}
+
+.admin-dashboard-purge__result {
+  margin: var(--space-3) 0 0;
+  font-weight: var(--text-body-medium-weight);
+  color: var(--state-success);
+}

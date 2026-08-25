@@ -1,0 +1,52 @@
+# Etapes d'installation, de controle et de compilation du front, PARTAGEES par :
+#   - azure-pipelines.staging.yml (branche dev)    -> artefact seul, aucun deploiement
+#   - azure-pipelines.prod.yml    (branche master) -> build puis deploiement direct
+# Toute evolution du build se fait ici : c'est le seul moyen de garantir que ce qui est
+# valide sur dev est exactement ce qui part en production.
+
+parameters:
+  # Angular 21 exige Node ^20.19 || ^22.12 || ^24 — 22 LTS est le palier stable.
+  - name: nodeVersion
+    type: string
+    default: '22.x'
+  - name: workingDir
+    type: string
+    default: 'ChoralFront'
+  # L'URL de l'API est FIGEE dans le bundle a la compilation (fileReplacements de
+  # angular.json). Compiler le staging en `production` produirait un artefact qui tape
+  # sur l'API de production — l'incident meme qu'un staging doit empecher.
+  - name: buildConfiguration
+    type: string
+    default: 'production'
+
+steps:
+
+  - task: NodeTool@0
+    displayName: Use Node ${{ parameters.nodeVersion }}
+    inputs:
+      versionSpec: ${{ parameters.nodeVersion }}
+
+  - script: npm ci
+    displayName: npm ci
+    workingDirectory: ${{ parameters.workingDir }}
+
+  # Bloquant a partir de « high ». Verifie sur l'arbre de dependances actuel : 0 vulnerabilite,
+  # donc ce garde-fou n'introduit aucun echec aujourd'hui. S'il rougit un jour, c'est qu'une
+  # dependance est reellement a corriger — ne pas abaisser le seuil pour faire passer le build.
+  - script: npm audit --audit-level=high
+    displayName: Audit npm · bloquant High/Critical
+    workingDirectory: ${{ parameters.workingDir }}
+
+  - script: npm run lint
+    displayName: Lint
+    workingDirectory: ${{ parameters.workingDir }}
+
+  # --watch=false est OBLIGATOIRE : sans lui le runner Vitest reste en surveillance et
+  # l'agent tourne jusqu'au delai d'expiration du job.
+  - script: npm test -- --watch=false
+    displayName: Tests unitaires
+    workingDirectory: ${{ parameters.workingDir }}
+
+  - script: npm run build -- --configuration ${{ parameters.buildConfiguration }}
+    displayName: Build (${{ parameters.buildConfiguration }})
+    workingDirectory: ${{ parameters.workingDir }}

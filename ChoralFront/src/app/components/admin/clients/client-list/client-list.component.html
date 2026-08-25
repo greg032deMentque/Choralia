@@ -1,0 +1,69 @@
+<div class="page client-list">
+  <app-page-header title="Clients" [breadcrumb]="[{ label: 'Administration' }, { label: 'Clients' }]">
+    <button type="button" class="btn btn-primary btn-sm" (click)="openCreateForm()">
+      <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+      Créer un client
+    </button>
+  </app-page-header>
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSizeSelectable]="true"
+    [pageSize]="pageSize()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    emptyMessage="Aucun client pour le moment."
+    noResultsMessage="Aucun résultat pour ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (rowClick)="onRowClick($event)"
+  />
+</div>
+
+<ng-template #tplStatus let-item>
+  <span
+    class="badge"
+    [class.text-bg-success]="item.Status === ClientStatusEnum.Active"
+    [class.text-bg-warning]="item.Status === ClientStatusEnum.Suspended"
+    [class.text-bg-dark]="item.Status === ClientStatusEnum.Archived"
+  >
+    {{ getStatusClientLabel(item.Status) }}
+  </span>
+</ng-template>
+
+<ng-template #tplStockage let-item>
+  {{ formatBytes(item.UsedStorageBytes) }}
+</ng-template>
+
+@if (showCreateForm()) {
+  <app-modal title="Créer un client" (closed)="cancelCreateForm()">
+    <form [formGroup]="createForm">
+          @if (createError()) {
+            <div class="alert alert-danger" role="alert">{{ createError() }}</div>
+          }
+
+          <app-form-field label="Nom" [required]="true">
+            <input type="text" class="form-control" formControlName="name" />
+          </app-form-field>
+          <app-form-field label="Contact — nom">
+            <input type="text" class="form-control" formControlName="contactName" />
+          </app-form-field>
+          <app-form-field label="Contact — email">
+            <input type="email" class="form-control" formControlName="contactEmail" />
+          </app-form-field>
+
+      <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelCreateForm()">Annuler</button>
+          <button type="button" class="btn btn-primary" [appSubmitOnce]="submitCreate">Créer</button>
+      </div>
+    </form>
+  </app-modal>
+}

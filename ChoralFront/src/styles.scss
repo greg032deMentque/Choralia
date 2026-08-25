@@ -1,0 +1,342 @@
+// `bootstrap-overrides` compile Bootstrap avec la configuration du projet — ne pas ajouter
+// d'import direct de `bootstrap/scss/bootstrap` à côté : ce serait un second module, non
+// configuré, qui écraserait le thème.
+@use 'bootstrap-overrides';
+@use 'tokens';
+@use 'ngx-toastr/toastr';
+
+// ------------------------------------------------------------------------------------------
+// Polices auto-hébergées (public/fonts/) — aucune requête vers un tiers, aucun clignotement
+// dû à une feuille de style externe. Fichiers variables sous-ensemble latin : un seul
+// fichier par famille couvre toute la plage de graisses. Licences SIL OFL à côté des .woff2.
+// ------------------------------------------------------------------------------------------
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-latin-variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Serif 4';
+  src: url('/fonts/source-serif-4-latin-variable.woff2') format('woff2-variations');
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family-base);
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-line-height);
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--text-link);
+}
+
+a:hover {
+  color: var(--text-link-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+// ------------------------------------------------------------------------------------------
+// Échelle typographique (§2.2) — un titre ne se style jamais à la main dans un composant.
+// La serif s'arrête à heading-2 : en dessous, elle nuit à la lisibilité aux petites tailles.
+// ------------------------------------------------------------------------------------------
+.text-display {
+  font-family: var(--font-family-display);
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  line-height: var(--text-display-line-height);
+  letter-spacing: -0.01em;
+}
+
+.text-heading-1 {
+  font-family: var(--font-family-display);
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  line-height: var(--text-heading-1-line-height);
+}
+
+.text-heading-2 {
+  font-family: var(--font-family-display);
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-heading-2-weight);
+  line-height: var(--text-heading-2-line-height);
+}
+
+.text-body-medium {
+  font-size: var(--text-body-medium-size);
+  font-weight: var(--text-body-medium-weight);
+  line-height: var(--text-body-medium-line-height);
+}
+
+.text-caption {
+  font-size: var(--text-caption-size);
+  line-height: var(--text-caption-line-height);
+  color: var(--text-muted);
+}
+
+.text-overline {
+  font-size: var(--text-overline-size);
+  font-weight: var(--text-overline-weight);
+  line-height: var(--text-overline-line-height);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+// ------------------------------------------------------------------------------------------
+// Gabarit de page (§4.2) : 1440px max, centré, marges 48px desktop / 16px sous tablette.
+// Remplace les `container-fluid` posés au cas par cas, qui laissaient le contenu coller aux
+// bords de l'écran.
+// ------------------------------------------------------------------------------------------
+.page {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--page-padding);
+}
+
+@media (max-width: 1023px) {
+  .page {
+    padding: var(--space-4) var(--page-padding-compact);
+  }
+}
+
+// ------------------------------------------------------------------------------------------
+// Rendu carte d'un tableau sous tablette (§0 — le site de gestion s'utilise aussi sur
+// téléphone). Un tableau à défilement horizontal sur 375 px est inutilisable.
+//
+// Global et non scopé à DataTableComponent : les écrans qui gardent leur propre tableau
+// (édition en ligne, colspan) doivent pouvoir s'y brancher sans dupliquer ces règles. Il
+// suffit d'ajouter `table-cards` sur le <table> et `data-label` sur chaque <td>.
+// ------------------------------------------------------------------------------------------
+@media (max-width: 767px) {
+  .table-cards {
+    display: block;
+    border: none;
+
+    thead {
+      // Masqué visuellement, conservé pour les lecteurs d'écran : chaque cellule porte déjà
+      // son libellé via `data-label`, mais la structure de tableau reste annoncée.
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: auto;
+    }
+
+    tr {
+      margin-bottom: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+    }
+
+    td {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-4);
+      padding: var(--space-1) 0;
+      border: none;
+      text-align: end;
+
+      &::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        font-size: var(--text-caption-size);
+        color: var(--text-muted);
+        text-align: start;
+      }
+    }
+
+    // Première cellule = titre de la carte : pas de libellé redondant, elle se suffit.
+    td:first-child {
+      display: block;
+      padding-bottom: var(--space-2);
+      margin-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-family-display);
+      font-size: var(--text-heading-2-size);
+      font-weight: var(--text-heading-2-weight);
+      text-align: start;
+
+      &::before {
+        content: none;
+      }
+    }
+  }
+
+  // Colonne de confort, masquée en carte pour ne pas transformer la fiche en pavé.
+  .table-cards .cell--hide-mobile,
+  .cell--hide-mobile {
+    display: none;
+  }
+
+  // Le conteneur de défilement horizontal n'a plus lieu d'être une fois en cartes.
+  .table-cards-wrapper {
+    overflow-x: visible;
+  }
+}
+
+// Identifiant lisible (code chorale, référence client) : chasse fixe pour éviter la
+// confusion entre caractères voisins à la lecture ou à la dictée.
+.ref-code {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+// Badge de statut (§3.1) : fond pastel + texte foncé, jamais un aplat de couleur vive.
+// Les couples fond/texte sont vérifiés ≥ 4,5:1 dans _tokens.scss. Le texte est toujours
+// présent — la couleur n'est jamais le seul porteur de l'information.
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption-size);
+  font-weight: var(--text-body-medium-weight);
+  background-color: var(--status-neutral-bg);
+  color: var(--status-neutral-fg);
+  white-space: nowrap;
+
+  &--published {
+    background-color: var(--status-published-bg);
+    color: var(--status-published-fg);
+  }
+
+  &--pending {
+    background-color: var(--status-pending-bg);
+    color: var(--status-pending-fg);
+  }
+
+  &--rejected {
+    background-color: var(--status-rejected-bg);
+    color: var(--status-rejected-fg);
+  }
+
+  &--draft {
+    background-color: var(--status-neutral-bg);
+    color: var(--status-neutral-fg);
+  }
+
+  // Archivé et annulé partagent le fond neutre du brouillon : c'est la graphie du texte qui
+  // les distingue (§3.1), pas une couleur de plus.
+  &--archived {
+    font-style: italic;
+  }
+
+  &--cancelled {
+    text-decoration: line-through;
+  }
+}
+
+// Bouton ne portant qu'une icône (afficher/masquer un mot de passe, replier une barre
+// latérale, action de ligne). Variante « icon-only » de la spec §3.1 : fond transparent au
+// repos, jamais une couleur d'accent. Le centrage passe par flex plutôt que par la ligne de
+// base du texte — un `.btn` Bootstrap seul décale l'icône vers le haut.
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover:not(:disabled) {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Cible tactile de 44px imposée hors desktop (§7.4) — l'icône garde sa taille, seule la
+// zone cliquable grandit.
+@media (max-width: 1023px) {
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+// Variante posée dans un `.input-group` : reprend la bordure du champ voisin pour rester
+// solidaire de l'input, sans redevenir un bouton de couleur.
+.input-group .btn-icon {
+  border-color: var(--border-subtle);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+// Keyframe partagé par les indicateurs de chargement (DataStateComponent variant
+// 'spinner'/'overlay', SubmitOnceDirective) — défini une seule fois ici : les @keyframes ne
+// sont pas encapsulées par Angular (ViewEncapsulation.Emulated), donc réutilisables telles
+// quelles depuis le SCSS scoped de n'importe quel composant.
+@keyframes app-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Spinner inline injecté dynamiquement par SubmitOnceDirective (pas de gabarit de composant
+// disponible pour une directive — style centralisé ici plutôt que dupliqué).
+.app-submit-once__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-inline-end: var(--space-2);
+  vertical-align: -2px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: var(--radius-full);
+  animation: app-spin 0.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

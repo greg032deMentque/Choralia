@@ -1,0 +1,33 @@
+.page-header {
+  margin-bottom: var(--space-6);
+}
+
+.page-header__breadcrumb {
+  font-size: var(--text-caption-size);
+  color: var(--text-muted);
+}
+
+.page-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+// Titre de page = `text-display` en serif (§2.2), le plus haut niveau de la hiérarchie.
+.page-header__title {
+  font-family: var(--font-family-display);
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  line-height: var(--text-display-line-height);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}

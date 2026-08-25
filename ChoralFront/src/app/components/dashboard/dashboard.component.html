@@ -1,0 +1,69 @@
+<div class="dashboard page">
+  <h1 class="dashboard__title">Tableau de bord</h1>
+
+  @if (isChoirSpace()) {
+    @if (error()) {
+      <div class="alert alert-danger" role="alert">
+        {{ error() }}
+        <button type="button" class="btn btn-link" (click)="load()">Réessayer</button>
+      </div>
+    }
+
+    <div class="row g-4 mb-6">
+      @for (kpi of kpis(); track kpi.Label) {
+        <div class="col-md-3 col-sm-6">
+          <div class="dashboard-kpi-card">
+            <app-icon [name]="kpi.Icon" size="nav" [ariaLabel]="null" />
+            <div class="dashboard-kpi-card__text">
+              <span class="dashboard-kpi-card__value">{{ kpi.Value }}</span>
+              <span class="dashboard-kpi-card__label">{{ kpi.Label }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <section class="dashboard-panel mt-3">
+          <h2 class="dashboard-panel__title">Événements à venir</h2>
+          <app-data-state
+            [loading]="loading()"
+            [empty]="!loading() && prochainsEvents().length === 0"
+            emptyMessage="Aucun événement à venir.">
+            <ul class="dashboard-event-list">
+              @for (evt of prochainsEvents(); track evt.Id) {
+                <li class="dashboard-event-item">
+                  <app-icon [name]="IconNameEnum.Calendar" size="inline" [ariaLabel]="null" />
+                  <div class="dashboard-event-item__text">
+                    <span class="dashboard-event-item__title">{{ evt.Title }}</span>
+                    <span class="dashboard-event-item__meta">{{ evt.Location }}</span>
+                  </div>
+                  @if (evt.ResponseRate !== null) {
+                    <span class="dashboard-event-item__rate">
+                      {{ evt.ResponseRate }} %
+                      <span class="dashboard-event-item__rate-detail">
+                        {{ evt.Responses }} / {{ evt.Targets }}
+                      </span>
+                    </span>
+                  } @else {
+                    <!-- Aucun membre ciblé : un taux n'aurait aucun sens, et 0 % se lirait
+                         comme une absence de réponse plutôt qu'une absence de destinataire. -->
+                    <span class="dashboard-event-item__rate-detail">Aucun participant</span>
+                  }
+                </li>
+              }
+            </ul>
+          </app-data-state>
+        </section>
+      </div>
+    </div>
+  } @else {
+    <!-- Espace de type Événement : aucun indicateur réel n'existe côté serveur pour ce type
+         d'espace (D30 — pas d'indicateur fabriqué). Écran sobre plutôt qu'un message
+         d'erreur permanent. -->
+    <section class="dashboard-panel">
+      <app-data-state [empty]="true" emptyMessage="Aucun indicateur disponible pour un événement." />
+    </section>
+  }
+</div>

@@ -1,0 +1,197 @@
+<div class="page my-structure">
+  <app-page-header title="Ma structure">
+    @if (activeTab() === 'choirs') {
+      <button type="button" class="btn btn-primary btn-sm" (click)="openCreateChoirForm()">Créer une chorale</button>
+    }
+  </app-page-header>
+
+  <app-data-state [loading]="loading()" [error]="error() && !structure() ? error() : null" [empty]="!structure()" emptyMessage="Structure introuvable." variant="spinner">
+    @if (structure(); as structure) {
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">{{ error() }}</div>
+      }
+
+      <div class="mb-4">
+        <h2 class="my-structure__title">{{ structure.Name }}</h2>
+        <span
+          class="badge"
+          [class.text-bg-success]="structure.Status === ClientStatusEnum.Active"
+          [class.text-bg-warning]="structure.Status === ClientStatusEnum.Suspended"
+          [class.text-bg-dark]="structure.Status === ClientStatusEnum.Archived"
+        >
+          {{ getStatusClientLabel(structure.Status) }}
+        </span>
+      </div>
+
+      <nav class="nav nav-tabs mb-3" role="tablist" aria-label="Pupitres de Ma structure">
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'choirs'" (click)="selectTab('choirs')">
+          Chorales ({{ structure.ChoirCount }})
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'limits'" (click)="selectTab('limits')">
+          Plafonds
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'managers'" (click)="selectTab('managers')">
+          Responsables
+        </button>
+      </nav>
+
+      @switch (activeTab()) {
+        @case ('choirs') {
+          <app-data-table
+            [columns]="choirsColumns"
+            [items]="choirsItems()"
+            [totalCount]="choirsTotalCount()"
+            [page]="choirsPage()"
+            [pageSize]="10"
+            [sortActive]="choirsSortActive()"
+            [sortDirection]="choirsSortDirection()"
+            [loading]="choirsLoading()"
+            [rowClickable]="true"
+            emptyMessage="Aucune chorale pour votre structure."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (sortChange)="onChoirsSortChange($event)"
+            (pageChange)="onChoirsPageChange($event)"
+            (filterChange)="onChoirsFilterChange($event)"
+            (rowClick)="onChoirRowClick($event)"
+          />
+        }
+        @case ('limits') {
+          <div class="alert alert-info" role="note">
+            Ces plafonds sont fixés par l'administration générale — vous les consultez ici en
+            lecture seule.
+          </div>
+          <div class="row g-3 my-structure__plafonds">
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Chorales</h3>
+                  <p class="mb-1">{{ structure.ChoirCount }} / {{ structure.ChoirLimit }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(structure.ChoirCount, structure.ChoirLimit)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(structure.ChoirCount, structure.ChoirLimit)"
+                      [style.width.%]="percentageUsage(structure.ChoirCount, structure.ChoirLimit)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(structure.ChoirCount, structure.ChoirLimit)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Membres</h3>
+                  <p class="mb-1">{{ structure.MemberCount }} / {{ structure.MemberLimit }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(structure.MemberCount, structure.MemberLimit)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(structure.MemberCount, structure.MemberLimit)"
+                      [style.width.%]="percentageUsage(structure.MemberCount, structure.MemberLimit)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(structure.MemberCount, structure.MemberLimit)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title h6">Stockage</h3>
+                  <p class="mb-1">{{ formatBytes(structure.UsedStorageBytes) }} / {{ formatBytes(structure.StorageQuotaBytes) }}</p>
+                  <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(structure.UsedStorageBytes, structure.StorageQuotaBytes)" aria-valuemin="0" aria-valuemax="100">
+                    <div
+                      class="progress-bar"
+                      [class.bg-danger]="isUsageCritical(structure.UsedStorageBytes, structure.StorageQuotaBytes)"
+                      [style.width.%]="percentageUsage(structure.UsedStorageBytes, structure.StorageQuotaBytes)"
+                    ></div>
+                  </div>
+                  @if (isUsageCritical(structure.UsedStorageBytes, structure.StorageQuotaBytes)) {
+                    <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                  }
+                  <p class="text-muted small mt-2 mb-0">Taille maximale par fichier : {{ formatBytes(structure.MaxFileSizeBytes) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @case ('managers') {
+          <div class="row g-4 mb-4">
+            <div class="col-md-6">
+              <h3 class="h6">Désigner un responsable</h3>
+              <form [formGroup]="assignForm" class="my-structure__form">
+                @if (assignError()) {
+                  <div class="alert alert-danger" role="alert">{{ assignError() }}</div>
+                }
+                <app-form-field label="Email" [required]="true">
+                  <input type="email" class="form-control" formControlName="email" />
+                </app-form-field>
+                <button type="button" class="btn btn-primary btn-sm" [appSubmitOnce]="assignManager">Désigner</button>
+              </form>
+            </div>
+          </div>
+
+          <app-data-table
+            [columns]="managersColumns()"
+            [items]="managersItems()"
+            [totalCount]="managersTotalCount()"
+            [page]="managersPage()"
+            [pageSize]="10"
+            [loading]="managersLoading()"
+            emptyMessage="Aucun responsable pour cette structure."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (pageChange)="onManagersPageChange($event)"
+            (filterChange)="onManagersFilterChange($event)"
+          />
+        }
+      }
+    }
+  </app-data-state>
+</div>
+
+<ng-template #tplManagerName let-item>{{ item.Firstname }} {{ item.Lastname }}</ng-template>
+<!-- Libellé statique, pas getUserRoleLabel(item.Role) : côté back, Role vaut toujours
+     UserRoleEnum.ClientManager ici, dont le libellé global est « Responsable client » — un mot
+     interdit hors /admin (règle de recette). Le reste de cet onglet dit déjà « responsable »
+     (« Désigner un responsable », « Retirer ce responsable ») : on reste cohérent avec lui. -->
+<ng-template #tplManagerRole let-item>Responsable</ng-template>
+<ng-template #tplManagerDate let-item>{{ item.AssignmentDate | date: 'dd/MM/yyyy' }}</ng-template>
+<ng-template #tplManagerActions let-item>
+  <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeManager(item)">Retirer</button>
+</ng-template>
+
+@if (showCreateChoirForm()) {
+  <app-modal title="Créer une chorale" (closed)="cancelCreateChoirForm()">
+    <form [formGroup]="createChoirForm">
+        @if (createChoirError()) {
+          <div class="alert alert-danger" role="alert">
+            {{ createChoirError() }}
+            @if (createChoirIsCapError()) {
+              <button type="button" class="btn btn-link btn-sm p-0 d-block mt-1" (click)="goToPlafondsFromCreateError()">
+                Voir les plafonds de la structure
+              </button>
+            }
+          </div>
+        }
+
+        <app-form-field label="Nom" [required]="true">
+          <input type="text" class="form-control" formControlName="name" />
+        </app-form-field>
+        <app-form-field label="Description">
+          <textarea class="form-control" formControlName="description" rows="3"></textarea>
+        </app-form-field>
+        <app-form-field label="Email du chef de chœur" [required]="true">
+          <input type="email" class="form-control" formControlName="choirMasterEmail" />
+        </app-form-field>
+        <p class="form-text">Cette personne doit déjà avoir un compte — ce n'est pas une invitation.</p>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelCreateChoirForm()">Annuler</button>
+        <button type="button" class="btn btn-primary" [appSubmitOnce]="submitCreateChoir">Créer</button>
+      </div>
+    </form>
+  </app-modal>
+}

@@ -1,0 +1,87 @@
+<div class="page member-home">
+  <app-page-header [title]="'Bonjour ' + (user()?.Firstname ?? '')" />
+
+  <div class="row g-4">
+    <div class="col-12">
+      <section class="member-home__card" aria-labelledby="member-home-next-event">
+        <div class="member-home__card-header">
+          <app-icon [name]="IconNameEnum.Calendar" size="nav" [ariaLabel]="null" />
+          <h2 id="member-home-next-event" class="member-home__card-title">Mon prochain événement</h2>
+        </div>
+        <app-data-state
+          [loading]="loadingNextEvent()"
+          [error]="nextEventError()"
+          [empty]="nextEvent() === null"
+          [emptyIcon]="IconNameEnum.Calendar"
+          emptyMessage="Aucun événement à venir pour le moment."
+          retryLabel="Réessayer"
+          variant="spinner"
+          (retry)="loadNextEvent()"
+        >
+          @if (nextEvent(); as event) {
+            <p class="member-home__event-title">{{ event.Title }}</p>
+            <p class="member-home__event-meta">
+              {{ getEventTypeLabel(event.Type) }} — {{ event.StartDate | date: 'EEEE d MMMM y, HH:mm' }}
+            </p>
+            @if (event.Location) {
+              <p class="member-home__event-meta">{{ event.Location }}</p>
+            }
+          }
+        </app-data-state>
+      </section>
+    </div>
+
+    @if (canBrowseSongs()) {
+      <div class="col-12">
+        <section class="member-home__card member-home__card--action" aria-labelledby="member-home-songs">
+          <div>
+            <div class="member-home__card-header mb-2">
+              <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="null" />
+              <h2 id="member-home-songs" class="member-home__card-title">Mes chants</h2>
+            </div>
+            <p class="member-home__event-meta">Retrouvez les partitions et les enregistrements publiés de votre chorale.</p>
+          </div>
+          <a class="btn btn-primary" [routerLink]="['/', RoutePaths.Me, RoutePaths.Songs]">Consulter les chants</a>
+        </section>
+      </div>
+    }
+
+    <div class="col-lg-6">
+      <section class="member-home__card" aria-labelledby="member-home-choirs">
+        <div class="member-home__card-header">
+          <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="null" />
+          <h2 id="member-home-choirs" class="member-home__card-title">Mes chorales</h2>
+        </div>
+        @if (choirs().length === 0) {
+          <p class="member-home__empty">Vous n'êtes rattaché à aucune chorale pour le moment.</p>
+        } @else {
+          <ul class="member-home__choirs">
+            @for (choir of choirs(); track choir.SpaceId) {
+              <li>
+                <span class="member-home__choir-name">{{ choir.Name }}</span>
+                <span class="member-home__choir-voice">
+                  {{ choir.PrimaryVoicePart !== null ? getVoicePartLabel(choir.PrimaryVoicePart) : 'Voix non renseignée' }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+
+    <div class="col-lg-6">
+      <section class="member-home__card" aria-labelledby="member-home-identity">
+        <div class="member-home__card-header">
+          <app-icon [name]="IconNameEnum.IdentificationCard" size="nav" [ariaLabel]="null" />
+          <h2 id="member-home-identity" class="member-home__card-title">Mon profil</h2>
+        </div>
+        <dl class="member-home__list">
+          <dt>Nom</dt>
+          <dd>{{ fullName() || '—' }}</dd>
+          <dt>Email</dt>
+          <dd>{{ user()?.Email ?? '—' }}</dd>
+        </dl>
+      </section>
+    </div>
+  </div>
+</div>

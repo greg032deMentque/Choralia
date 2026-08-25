@@ -1,0 +1,79 @@
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate class="event-form">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <label for="titre" class="form-label">Titre</label>
+      <input
+        id="titre"
+        type="text"
+        class="form-control"
+        formControlName="title"
+        [class.is-invalid]="form.controls.title.invalid && form.controls.title.touched"
+      />
+      @if (form.controls.title.invalid && form.controls.title.touched) {
+        <div class="invalid-feedback">Le titre est obligatoire (200 caractères max).</div>
+      }
+    </div>
+
+    <div class="col-md-4">
+      <label for="type" class="form-label">Type</label>
+      <select id="type" class="form-select" formControlName="type">
+        @for (type of allTypes; track type) {
+          <option [ngValue]="type">{{ getEventTypeLabel(type) }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label for="dateDebut" class="form-label">Date de début</label>
+      <input
+        id="dateDebut"
+        type="datetime-local"
+        class="form-control"
+        formControlName="dateDebut"
+        [class.is-invalid]="form.controls.dateDebut.invalid && form.controls.dateDebut.touched"
+      />
+      @if (form.controls.dateDebut.invalid && form.controls.dateDebut.touched) {
+        <div class="invalid-feedback">La date de début est obligatoire.</div>
+      }
+    </div>
+
+    <div class="col-md-6">
+      <label for="dateFin" class="form-label">Date de fin</label>
+      <input id="dateFin" type="datetime-local" class="form-control" formControlName="dateFin" />
+    </div>
+
+    <div class="col-md-6">
+      <label for="lieu" class="form-label">Lieu</label>
+      <input
+        id="lieu"
+        type="text"
+        class="form-control"
+        formControlName="location"
+        [class.is-invalid]="form.controls.location.invalid && form.controls.location.touched"
+      />
+      @if (form.controls.location.invalid && form.controls.location.touched) {
+        <div class="invalid-feedback">Le lieu ne doit pas dépasser 300 caractères.</div>
+      }
+      <div class="form-text">Optionnel à la création — obligatoire pour publier l'événement.</div>
+    </div>
+
+    <div class="col-12">
+      <label for="description" class="form-label">Description</label>
+      <textarea id="description" class="form-control" rows="3" formControlName="description"></textarea>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">{{ error() }}</div>
+  }
+
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      }
+      {{ isEditMode() ? 'Enregistrer' : "Créer l'événement" }}
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="isSubmitting()">Annuler</button>
+  </div>
+</form>

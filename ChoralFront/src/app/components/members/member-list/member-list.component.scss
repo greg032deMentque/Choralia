@@ -1,0 +1,16 @@
+.member-list {
+  padding: var(--space-4);
+}
+
+.member-list__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  margin: 0;
+}
+
+.member-list__invite {
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background-color: var(--color-neutral-50);
+}

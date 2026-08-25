@@ -1,0 +1,80 @@
+<div class="rejoindre-page">
+  <div class="rejoindre-card">
+    <div class="rejoindre-card__brand">
+      <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+      <span class="rejoindre-card__brand-name">Choralia</span>
+    </div>
+
+    @if (!code()) {
+      <h1 class="rejoindre-card__title">Rejoindre une chorale</h1>
+      <p class="rejoindre-card__subtitle">Saisissez le code de rattachement transmis par le responsable.</p>
+
+      <form [formGroup]="manualCodeForm" (ngSubmit)="submitManualCode()" novalidate>
+        <div class="mb-3">
+          <label for="manual-code" class="form-label">Code de rattachement</label>
+          <input
+            id="manual-code"
+            type="text"
+            class="form-control text-uppercase"
+            formControlName="code"
+            placeholder="XXXX-XXXX"
+            autocapitalize="characters"
+            [class.is-invalid]="manualCodeForm.controls.code.invalid && manualCodeForm.controls.code.touched"
+          />
+          @if (manualCodeForm.controls.code.invalid && manualCodeForm.controls.code.touched) {
+            <div class="invalid-feedback">Le code est obligatoire.</div>
+          }
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Continuer</button>
+      </form>
+    } @else if (loadingPreview()) {
+      <div class="rejoindre-card__state" role="status" aria-live="polite">
+        <span class="spinner-border" aria-hidden="true"></span>
+        <p>Vérification du code...</p>
+      </div>
+    } @else if (previewError()) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">{{ previewError() }}</div>
+      <a [routerLink]="'/' + RoutePaths.Join" class="btn btn-outline-primary w-100">Réessayer avec un autre code</a>
+    } @else if (preview()) {
+      <h1 class="rejoindre-card__title">{{ preview()!.Name }}</h1>
+      <p class="rejoindre-card__subtitle">{{ getSpaceTypeLabel(preview()!.SpaceType) }}</p>
+
+      @if (requestEnvoyee()) {
+        <div class="alert alert-success" role="status" aria-live="polite">
+          Votre demande a été envoyée. Le responsable doit encore la valider.
+        </div>
+        <a [routerLink]="'/' + RoutePaths.Start" class="btn btn-primary w-100">Retour à l'accueil</a>
+      } @else if (isAuthenticated()) {
+        <p class="rejoindre-card__connected-as">
+          Vous êtes connecté en tant que {{ currentUser()?.Firstname }} {{ currentUser()?.Lastname }}.
+        </p>
+
+        <form [formGroup]="requestForm" (ngSubmit)="requestMembership()" novalidate class="mb-3">
+          <div class="mb-3">
+            <label for="message" class="form-label">Message au responsable (facultatif)</label>
+            <textarea id="message" class="form-control" rows="2" formControlName="message" maxlength="500"></textarea>
+          </div>
+
+          @if (requestError()) {
+            <div class="alert alert-danger" role="alert" aria-live="assertive">{{ requestError() }}</div>
+          }
+
+          <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmittingRequest()">
+            @if (isSubmittingRequest()) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+            }
+            Demander à rejoindre
+          </button>
+        </form>
+
+        <button type="button" class="btn btn-link w-100" (click)="useAnotherAccount()">Utiliser un autre compte</button>
+      } @else {
+        <p class="rejoindre-card__subtitle">Créez un compte ou connectez-vous pour envoyer votre demande.</p>
+        <div class="d-flex flex-column gap-2">
+          <a [routerLink]="'/' + RoutePaths.Registration" class="btn btn-primary">Créer un compte</a>
+          <button type="button" class="btn btn-outline-primary" (click)="loginWithReturnUrl()">Se connecter</button>
+        </div>
+      }
+    }
+  </div>
+</div>

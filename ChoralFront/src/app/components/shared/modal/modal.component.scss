@@ -1,0 +1,41 @@
+// `modal-backdrop` et `modal` de Bootstrap sont utilisés tels quels : aucun z-index n'est
+// redéclaré ici. Les quatre modales remplacées posaient 1040/1050 en dur, ce qui plaçait la
+// boîte SOUS la valeur officielle du fond de Bootstrap 5.3 ($zindex-modal-backdrop: 1050).
+:host {
+  display: contents;
+}
+
+.app-modal {
+  overflow-y: auto;
+}
+
+// Le fond couvre l'écran ; le contenu de la boîte est positionné par-dessus. `.modal` ne
+// capte pas le pointeur, `.modal-dialog` le réactive : un clic sur le contenu n'atteint donc
+// jamais le bouton de fond, sans recourir à stopPropagation().
+.app-modal__backdrop {
+  border: none;
+  padding: 0;
+}
+
+.app-modal {
+  pointer-events: none;
+}
+
+.app-modal .modal-dialog {
+  pointer-events: auto;
+}
+
+// Largeur imposee aux modales par 11-ux-ui §3.3, portee une seule fois ici : elle etait
+// recopiee en dur (480px) dans chacune des quatre modales remplacees.
+.app-modal .modal-dialog {
+  max-width: 480px;
+  margin: var(--space-8) auto;
+}
+
+// La variante plein écran doit reprendre la main sur la largeur ci-dessus : celle-ci est
+// portée par un sélecteur plus spécifique (`.app-modal .modal-dialog`) que la classe
+// `.modal-fullscreen` de Bootstrap, qui resterait sinon sans effet.
+.app-modal .modal-dialog.modal-fullscreen {
+  max-width: none;
+  margin: 0;
+}

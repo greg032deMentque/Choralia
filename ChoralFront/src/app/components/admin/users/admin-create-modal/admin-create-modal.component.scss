@@ -1,0 +1,21 @@
+.administrateur-create-modal__backdrop {
+  z-index: 1040;
+  width: 100%;
+  border: none;
+  padding: 0;
+}
+
+// .modal ignore les clics (ils traversent jusqu'au bouton de fond ci-dessus) SAUF sur sa boîte
+// de dialogue, réactivée explicitement — un clic sur le contenu ne ferme donc jamais la modale,
+// sans dépendre d'un stopPropagation() sur un élément non interactif (voir le commentaire du
+// gabarit).
+.administrateur-create-modal {
+  z-index: 1050;
+  pointer-events: none;
+}
+
+.administrateur-create-modal .modal-dialog {
+  max-width: 480px;
+  margin: var(--space-8) auto;
+  pointer-events: auto;
+}

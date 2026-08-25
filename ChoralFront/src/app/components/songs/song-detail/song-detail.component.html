@@ -1,0 +1,70 @@
+<div class="page song-detail">
+  <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Songs]" class="d-inline-flex align-items-center gap-1 mb-3">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux chants
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error()" [empty]="!song()" emptyMessage="Chant introuvable.">
+    @if (song(); as c) {
+      @if (editing()) {
+        <app-song-form [song]="c" (saved)="onFormSaved($event)" (cancelled)="onFormCancelled()" />
+      } @else {
+        <div class="song-detail__card">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h1 class="song-detail__title">{{ c.Title }}</h1>
+              <span class="badge" [class.text-bg-success]="c.Status === 0" [class.text-bg-secondary]="c.Status === 1">
+                {{ getSongStatusLabel(c.Status) }}
+              </span>
+              @if (c.IsCompleteForChoir) {
+                <span class="badge text-bg-success ms-1">Complet</span>
+              } @else {
+                <span class="badge text-bg-warning ms-1">Incomplet — manque : {{ missingVoicePartLabel() }}</span>
+              }
+            </div>
+            @if (canManage()) {
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEdit()">Modifier</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteSong()">Archiver</button>
+              </div>
+            }
+          </div>
+
+          <dl class="row mt-4">
+            <dt class="col-sm-3">Voix concernées</dt>
+            <dd class="col-sm-9">{{ c.VoiceParts.length === 0 ? '—' : getVoicePartsLabel(c.VoiceParts) }}</dd>
+
+            <dt class="col-sm-3">Auteur</dt>
+            <dd class="col-sm-9">{{ c.Author || '—' }}</dd>
+
+            <dt class="col-sm-3">Compositeur</dt>
+            <dd class="col-sm-9">{{ c.Composer || '—' }}</dd>
+
+            <dt class="col-sm-3">Langue</dt>
+            <dd class="col-sm-9">{{ c.Language || '—' }}</dd>
+
+            <dt class="col-sm-3">Tonalité de travail</dt>
+            <dd class="col-sm-9">{{ c.WorkingKey || '—' }}</dd>
+
+            <dt class="col-sm-3">Priorité</dt>
+            <dd class="col-sm-9">{{ c.Priority === null ? '—' : getPrioritySongLabel(c.Priority) }}</dd>
+
+            <dt class="col-sm-3">Commentaires de préparation</dt>
+            <dd class="col-sm-9">{{ c.PreparationNotes || '—' }}</dd>
+          </dl>
+
+          <div class="d-flex gap-2">
+            <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Scores]" class="btn btn-outline-primary btn-sm">Voir les partitions</a>
+            <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Recordings]" class="btn btn-outline-primary btn-sm">Voir les enregistrements</a>
+          </div>
+        </div>
+
+        <!-- Une consigne n'existe que rattachée à son chant : elle vit donc ici, et non dans un
+             écran « Consignes » transverse (décision produit, Spec/chorale/10-decisions.md). -->
+        @if (c.Id) {
+          <app-song-instructions [songId]="c.Id" [canManage]="canManage()" />
+        }
+      }
+    }
+  </app-data-state>
+</div>

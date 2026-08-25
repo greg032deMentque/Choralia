@@ -1,0 +1,206 @@
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--nav-bg);
+  border-right: 1px solid var(--nav-border);
+  transition: width var(--duration-base) var(--easing-standard);
+  overflow-x: hidden;
+}
+
+.sidebar--collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+.sidebar__close-btn {
+  display: none;
+}
+
+// Tiroir sous 1024 px : la barre sort du flux et se superpose au contenu. `transform` plutôt
+// que `display` pour conserver une transition, et `visibility` pour la retirer du parcours de
+// tabulation une fois fermée — un tiroir invisible mais focusable est un piège au clavier.
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 30;
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+    visibility: hidden;
+    box-shadow: var(--shadow-lg);
+    transition:
+      transform var(--duration-base) var(--easing-standard),
+      visibility var(--duration-base) var(--easing-standard);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  // Au format tiroir, la largeur est toujours pleine : replier n'a plus de sens.
+  .sidebar--collapsed {
+    width: var(--sidebar-width);
+  }
+
+  .sidebar__collapse-btn {
+    display: none;
+  }
+
+  .sidebar__close-btn {
+    display: inline-flex;
+    margin-inline-start: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  // Garde explicite (pas `height` fixe) : la topbar s'aligne sur cette hauteur réelle
+  // (tokens.scss --layout-header-height) sans jamais risquer de tronquer le bouton replier
+  // (44px, cible tactile) si le contenu de l'en-tête grandissait.
+  min-height: var(--layout-header-height);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--action-bg);
+  position: relative;
+}
+
+.sidebar__header-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// Nom de l'espace actif : c'est l'information principale de l'en-tête.
+.sidebar__space-name {
+  font-family: var(--font-family-display);
+  font-weight: var(--text-heading-2-weight);
+  font-size: var(--text-heading-2-size);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Nom du produit : en retrait, il signe l'outil sans le mettre en avant.
+.sidebar__brand {
+  font-size: var(--text-overline-size);
+  font-weight: var(--text-overline-weight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__collapse-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--bg-hover);
+  }
+}
+
+.sidebar__nav {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar__nav-item {
+  margin-bottom: var(--space-1);
+}
+
+.sidebar__nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--nav-fg);
+  text-decoration: none;
+  font-size: var(--text-body-medium-size);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+}
+
+// Filet laiton sur l'élément actif : c'est l'un des rares emplois de l'accent de marque
+// (§2.1 — le laiton signale, il ne porte jamais de texte).
+.sidebar__nav-link--active {
+  background-color: var(--nav-bg-active);
+  color: var(--nav-fg-active);
+  font-weight: var(--text-body-medium-weight);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.sidebar__nav-link--parent {
+  justify-content: flex-start;
+}
+
+.sidebar__nav-parent {
+  display: flex;
+  align-items: stretch;
+}
+
+.sidebar__nav-parent > .sidebar__nav-link {
+  min-width: 0;
+}
+
+.sidebar__section-toggle {
+  flex: 0 0 44px;
+  border-radius: 0;
+}
+
+.sidebar__nav-link--child {
+  padding-left: var(--space-12);
+}
+
+.sidebar__nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__nav-badge {
+  margin-left: auto;
+}
+
+.sidebar__sub-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}

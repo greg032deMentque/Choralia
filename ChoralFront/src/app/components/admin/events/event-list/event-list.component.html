@@ -1,0 +1,112 @@
+<div class="page event-list">
+  <app-page-header title="Événements" [breadcrumb]="[{ label: 'Administration' }, { label: 'Événements' }]" />
+
+  <div class="row g-2 mb-3 event-list__filters">
+    <div class="col-md-2">
+      <label class="form-label small" for="filter-client-id">Client</label>
+      <input
+        id="filter-client-id"
+        type="text"
+        class="form-control"
+        placeholder="UUID du client"
+        [value]="filterClientId()"
+        (change)="onClientIdChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small" for="filter-chorale-id">Chorale</label>
+      <input
+        id="filter-chorale-id"
+        type="text"
+        class="form-control"
+        placeholder="UUID de la chorale"
+        [value]="filterChoirId()"
+        (change)="onChoirIdChange($any($event.target).value)"
+      />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small" for="filter-statut">Statut</label>
+      <select id="filter-statut" class="form-select" (change)="onStatusChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (status of allStatuss; track status) {
+          <option [value]="status" [selected]="filterStatus() === status">{{ getEventStatusLabel(status) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small" for="filter-type">Type</label>
+      <select id="filter-type" class="form-select" (change)="onTypeChange($any($event.target).value)">
+        <option value="">Tous</option>
+        @for (type of allTypes; track type) {
+          <option [value]="type" [selected]="filterType() === type">{{ getEventTypeLabel(type) }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small" for="filter-avenir">Échéance</label>
+      <select id="filter-avenir" class="form-select" (change)="onUpcomingChange($any($event.target).value)">
+        <option value="">Tous</option>
+        <option value="true" [selected]="filterUpcoming() === 'true'">À venir</option>
+        <option value="false" [selected]="filterUpcoming() === 'false'">Passés</option>
+      </select>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSizeSelectable]="true"
+    [pageSize]="pageSize()"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    emptyMessage="Aucun événement pour le moment."
+    noResultsMessage="Aucun résultat pour ce filtre."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterChange($event)"
+    (rowClick)="onRowClick($event)"
+  />
+</div>
+
+<ng-template #tplDate let-item>
+  {{ item.StartDate | date: "EEE d MMM y, HH:mm" }}
+</ng-template>
+
+<ng-template #tplChorale let-item>
+  @if (item.ChoirName) {
+    {{ item.ChoirName }}
+  } @else {
+    <span class="text-muted fst-italic">Événement autonome (sans chorale)</span>
+  }
+</ng-template>
+
+<ng-template #tplType let-item>
+  {{ getEventTypeLabel(item.Type) }}
+</ng-template>
+
+<ng-template #tplStatus let-item>
+  <span
+    class="badge"
+    [class.text-bg-secondary]="item.Status === EventStatusEnum.Draft"
+    [class.text-bg-success]="item.Status === EventStatusEnum.Published"
+    [class.text-bg-warning]="item.Status === EventStatusEnum.Cancelled"
+    [class.text-bg-dark]="item.Status === EventStatusEnum.Archived"
+  >
+    {{ getEventStatusLabel(item.Status) }}
+  </span>
+</ng-template>
+
+<ng-template #tplAnomalie let-item>
+  @if (item.IsTechnicalClientAnomaly) {
+    <span class="badge text-bg-danger d-inline-flex align-items-center gap-1" title="Rattaché au client technique — à corriger">
+      <app-icon [name]="IconNameEnum.Warning" size="dense" [ariaLabel]="null" />
+      À corriger
+    </span>
+  }
+</ng-template>

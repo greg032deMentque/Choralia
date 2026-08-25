@@ -1,0 +1,40 @@
+# Staging front — branche dev. Installe, audite, lint, teste, compile et publie un artefact.
+# NE DEPLOIE RIEN : le deploiement est confie aux Releases Azure DevOps, qui consomment
+# l'artefact `app_service_front-staging`.
+
+trigger:
+  branches:
+    include:
+      - dev
+  paths:
+    include:
+      - ChoralFront/**
+
+pr: none
+
+variables:
+  # Chemin par defaut du builder @angular/build:application pour le projet `chorale-web`
+  # (aucun outputPath declare dans angular.json).
+  outputDir: 'ChoralFront/dist/chorale-web/browser'
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+
+  - stage: Build
+    displayName: Build · Audit · Test · Artefact
+    jobs:
+      - job: BuildJob
+        displayName: Install · Audit · Lint · Test · Build · Publish
+        steps:
+
+          - template: templates/build-and-test.yml
+            parameters:
+              buildConfiguration: 'staging'
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publier l'artefact app_service_front-staging
+            inputs:
+              targetPath: $(outputDir)
+              artifact: 'app_service_front-staging'

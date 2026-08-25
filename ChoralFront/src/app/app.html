@@ -1,0 +1,14 @@
+<router-outlet />
+
+@if (confirmService.request(); as req) {
+  <app-confirm-modal
+    [title]="req.title"
+    [message]="req.message"
+    [impacts]="req.impacts ?? []"
+    [confirmationKeyword]="req.confirmationKeyword ?? null"
+    [confirmationLabel]="req.confirmationLabel ?? 'Confirmer'"
+    [danger]="req.danger ?? false"
+    (confirmed)="confirmService.resolve(true)"
+    (cancelled)="confirmService.resolve(false)"
+  />
+}

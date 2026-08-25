@@ -1,0 +1,7 @@
+// `display: contents` fait disparaître l'hôte de la mise en page : c'est le `.col-md-4` interne
+// qui devient directement une cellule du `.row` de l'appelant, et l'alerte du répertoire vide
+// qui occupe la largeur entière. Sans cela, <app-song-picker> s'interposerait comme enfant
+// direct de `.row` sans porter de classe `col-*`, et casserait la grille Bootstrap.
+:host {
+  display: contents;
+}

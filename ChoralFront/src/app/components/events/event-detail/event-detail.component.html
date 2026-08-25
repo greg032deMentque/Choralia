@@ -1,0 +1,144 @@
+<div class="page event-detail">
+  <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Events]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux événements
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error()" [empty]="!evt()" emptyMessage="Événement introuvable.">
+    @if (evt(); as evt) {
+      @if (editing()) {
+        <app-event-form [evt]="evt" (saved)="onFormSaved($event)" (cancelled)="onFormCancelled()" />
+      } @else {
+        <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+          <div>
+            <h1 class="event-detail__title">{{ evt.Title }}</h1>
+            <span class="badge text-bg-light me-2">{{ getEventTypeLabel(evt.Type) }}</span>
+            <span
+              class="badge me-2"
+              [class.text-bg-secondary]="evt.EffectiveState === EventEffectiveStateEnum.Draft"
+              [class.text-bg-success]="evt.EffectiveState === EventEffectiveStateEnum.Published"
+              [class.text-bg-info]="evt.EffectiveState === EventEffectiveStateEnum.Finished"
+              [class.text-bg-danger]="evt.EffectiveState === EventEffectiveStateEnum.Cancelled"
+              [class.text-bg-dark]="evt.EffectiveState === EventEffectiveStateEnum.Archived"
+            >
+              {{ getEventEffectiveStateLabel(evt.EffectiveState) }}
+            </span>
+            <span class="text-muted">{{ evt.StartDate | date: "EEEE d MMMM y, HH:mm" }}</span>
+            @if (evt.EndDate) {
+              <span class="text-muted"> — {{ evt.EndDate | date: "EEEE d MMMM y, HH:mm" }}</span>
+            }
+            @if (evt.Location) {
+              <div class="text-muted mt-1 d-flex align-items-center gap-1">
+                <app-icon [name]="IconNameEnum.MapPin" size="dense" [ariaLabel]="null" />
+                {{ evt.Location }}
+              </div>
+            }
+            @if (evt.Description) {
+              <p class="mt-2 mb-0">{{ evt.Description }}</p>
+            }
+          </div>
+          @if (canManage()) {
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              @if (evt.Status === EventStatusEnum.Draft) {
+                <div class="d-flex flex-column align-items-end">
+                  <button type="button" class="btn btn-success btn-sm" [disabled]="!evt.Location" (click)="publishEvent()">
+                    Publier
+                  </button>
+                  @if (!evt.Location) {
+                    <span class="text-muted small mt-1">Lieu requis pour publier</span>
+                  }
+                </div>
+              }
+              @if (evt.Status === EventStatusEnum.Published) {
+                <button type="button" class="btn btn-outline-warning btn-sm" (click)="cancelEvent()">
+                  Annuler
+                </button>
+              }
+              @if (evt.Status !== EventStatusEnum.Archived) {
+                <button type="button" class="btn btn-outline-dark btn-sm" (click)="archiveEvent()">
+                  Archiver
+                </button>
+              }
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEdit()">
+                <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="'Modifier'" />
+                Modifier
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteEvent()">
+                <app-icon [name]="IconNameEnum.Trash" size="dense" [ariaLabel]="'Supprimer'" />
+                Supprimer
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <section class="mb-4">
+        <h2 class="event-detail__section-title">Playlist par voix</h2>
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <select class="form-select" (change)="onVoicePartChange($any($event.target).value)">
+              @for (voicePart of allVoicePart; track voicePart) {
+                <option [value]="voicePart" [selected]="voicePart === selectedVoicePart()">{{ getVoicePartLabel(voicePart) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <app-data-state [loading]="playlistLoading()" [error]="playlistError()" [empty]="false">
+          <app-audio-player [tracks]="playlistTracks()" [emptyMessage]="playlistEmptyMessage()" />
+        </app-data-state>
+      </section>
+
+      <section>
+        <h2 class="event-detail__section-title">Listes de chants</h2>
+        <app-data-state
+          [loading]="listsLoading()"
+          [error]="listsError()"
+          [empty]="lists().length === 0"
+          emptyMessage="Aucune liste de chants rattachée à cet événement."
+        >
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Type</th>
+                  <th>Statut</th>
+                  <th>Chants</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (list of lists(); track list.Id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.SongLists, list.Id]">{{ list.Name }}</a>
+                    </td>
+                    <td>{{ getTypeListLabel(list.Type) }}</td>
+                    <td>
+                      <span
+                        class="badge"
+                        [class.text-bg-secondary]="list.Status === SongListStatusEnum.Draft"
+                        [class.text-bg-success]="list.Status === SongListStatusEnum.Published"
+                        [class.text-bg-dark]="list.Status === SongListStatusEnum.Archived"
+                      >
+                        {{ getStatusListLabel(list.Status) }}
+                      </span>
+                    </td>
+                    <td>{{ list.Songs.length }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <app-pagination
+            [page]="listsPage()"
+            [totalPages]="listsTotalPages()"
+            [totalCount]="listsTotalCount()"
+            ariaLabel="Pagination des listes de chants"
+            (pageChange)="goToListsPage($event)"
+          />
+        </app-data-state>
+      </section>
+    }
+  </app-data-state>
+</div>

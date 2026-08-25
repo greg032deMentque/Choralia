@@ -1,0 +1,98 @@
+<div class="page create-event-page">
+  @if (created()) {
+    <app-space-bootstrap [spaceId]="created()!.Id!" [spaceName]="created()!.Title" [spaceType]="SpaceTypeEnum.Event" />
+  } @else if (emailNonVerifie()) {
+    <div class="create-event-blocked">
+      <app-icon [name]="IconNameEnum.Warning" size="empty-state" [ariaLabel]="null" />
+      <h1 class="create-event-blocked__title">Vérifiez votre adresse email</h1>
+      <p class="create-event-blocked__text">
+        Vérifiez votre adresse email avant de créer une chorale ou un événement.
+      </p>
+
+      @if (resendSent()) {
+        <div class="alert alert-success" role="status" aria-live="polite">Message renvoyé.</div>
+      } @else {
+        <button type="button" class="btn btn-primary" (click)="rsendVerification()">
+          Renvoyer le lien de vérification
+        </button>
+      }
+
+      <a [routerLink]="'/' + RoutePaths.Start" class="create-event-blocked__back-link">Retour</a>
+    </div>
+  } @else {
+    <h1 class="create-event-page__title">Créer un événement</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="create-event-form">
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label for="titre" class="form-label">Titre</label>
+          <input
+            id="titre"
+            type="text"
+            class="form-control"
+            formControlName="title"
+            [class.is-invalid]="form.controls.title.invalid && form.controls.title.touched"
+          />
+          @if (form.controls.title.invalid && form.controls.title.touched) {
+            <div class="invalid-feedback">Le titre est obligatoire (200 caractères max).</div>
+          }
+        </div>
+
+        <div class="col-md-4">
+          <label for="type" class="form-label">Type</label>
+          <select id="type" class="form-select" formControlName="type">
+            @for (type of allTypes; track type) {
+              <option [ngValue]="type">{{ getEventTypeLabel(type) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label for="dateDebut" class="form-label">Date de début</label>
+          <input
+            id="dateDebut"
+            type="datetime-local"
+            class="form-control"
+            formControlName="dateDebut"
+            [class.is-invalid]="form.controls.dateDebut.invalid && form.controls.dateDebut.touched"
+          />
+          @if (form.controls.dateDebut.invalid && form.controls.dateDebut.touched) {
+            <div class="invalid-feedback">La date de début est obligatoire.</div>
+          }
+        </div>
+
+        <div class="col-md-6">
+          <label for="dateFin" class="form-label">Date de fin (facultatif)</label>
+          <input id="dateFin" type="datetime-local" class="form-control" formControlName="dateFin" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="lieu" class="form-label">Lieu (facultatif)</label>
+          <input id="lieu" type="text" class="form-control" formControlName="location" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="structure" class="form-label">Structure (facultatif)</label>
+          <input id="structure" type="text" class="form-control" formControlName="structure" />
+          <div class="form-text">Laissez vide si vous ne gérez pas de structure porteuse.</div>
+        </div>
+
+        <div class="col-12">
+          <label for="description" class="form-label">Description (facultatif)</label>
+          <textarea id="description" class="form-control" rows="3" formControlName="description"></textarea>
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger mt-3" role="alert" aria-live="assertive">{{ error() }}</div>
+      }
+
+      <button type="submit" class="btn btn-primary mt-4" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        }
+        Créer l'événement
+      </button>
+    </form>
+  }
+</div>

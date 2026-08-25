@@ -1,0 +1,73 @@
+<div class="page event-detail">
+  <a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminEvents]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux événements
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error() && !detail() ? error() : null" [empty]="!detail()" emptyMessage="Événement introuvable." variant="spinner">
+    @if (detail(); as detail) {
+      @if (detail.IsTechnicalClientAnomaly) {
+        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+          <app-icon [name]="IconNameEnum.Warning" size="dense" [ariaLabel]="null" />
+          <span>
+            Cet événement autonome est rattaché au client technique créé par la migration — un
+            rattachement manuel à un client réel doit être effectué.
+          </span>
+        </div>
+      }
+
+      <div class="mb-4">
+        <h1 class="event-detail__title">{{ detail.Title }}</h1>
+        <div class="text-muted">{{ getEventTypeLabel(detail.Type) }} — {{ detail.ClientName }}</div>
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <span
+            class="badge"
+            [class.text-bg-secondary]="detail.Status === EventStatusEnum.Draft"
+            [class.text-bg-success]="detail.Status === EventStatusEnum.Published"
+            [class.text-bg-warning]="detail.Status === EventStatusEnum.Cancelled"
+            [class.text-bg-dark]="detail.Status === EventStatusEnum.Archived"
+          >
+            {{ getEventStatusLabel(detail.Status) }}
+          </span>
+          <span class="badge text-bg-light">{{ getEventEffectiveStateLabel(detail.EffectiveState) }}</span>
+        </div>
+      </div>
+
+      <dl class="row event-detail__info-list">
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">{{ detail.Description || 'Aucune description.' }}</dd>
+
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">
+          {{ detail.StartDate | date: "EEEE d MMMM y, HH:mm" }}
+          @if (detail.EndDate) {
+            — {{ detail.EndDate | date: "EEEE d MMMM y, HH:mm" }}
+          }
+        </dd>
+
+        <dt class="col-sm-3">Lieu</dt>
+        <dd class="col-sm-9">{{ detail.Location || 'Non renseigné' }}</dd>
+
+        <dt class="col-sm-3">Chorale porteuse</dt>
+        <dd class="col-sm-9">
+          @if (detail.ChoirName) {
+            {{ detail.ChoirName }}
+          } @else {
+            <span class="text-muted fst-italic">Événement autonome (sans chorale)</span>
+          }
+        </dd>
+
+        <dt class="col-sm-3">Participants</dt>
+        <dd class="col-sm-9">{{ detail.ParticipantCount }}</dd>
+
+        <dt class="col-sm-3">Créé le</dt>
+        <dd class="col-sm-9">{{ detail.CreatedAt | date: 'short' }}</dd>
+
+        @if (detail.ClosedAt) {
+          <dt class="col-sm-3">Clôturé le</dt>
+          <dd class="col-sm-9">{{ detail.ClosedAt | date: 'short' }}</dd>
+        }
+      </dl>
+    }
+  </app-data-state>
+</div>

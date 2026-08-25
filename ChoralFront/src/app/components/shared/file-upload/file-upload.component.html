@@ -1,0 +1,27 @@
+<div class="file-upload__wrapper">
+  <label
+    class="file-upload"
+    [class.file-upload--dragging]="isDragging()"
+    [class.file-upload--disabled]="disabled()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    <input type="file" class="file-upload__input" [accept]="accept()" [disabled]="disabled()" (change)="onFileInputChange($event)" />
+    <app-icon [name]="IconNameEnum.Upload" size="inline" [ariaLabel]="null" />
+    @if (selectedFileName()) {
+      <span class="file-upload__filename">{{ selectedFileName() }}</span>
+    } @else {
+      <span class="file-upload__label">{{ label() }}</span>
+    }
+  </label>
+
+  <!-- Hors du <label> : à l'intérieur, tout clic rouvrirait le sélecteur de fichier au lieu
+       de retirer la sélection. -->
+  @if (selectedFileName() && !disabled()) {
+    <button type="button" class="btn btn-link btn-sm file-upload__clear" (click)="clear()">
+      <app-icon [name]="IconNameEnum.X" size="dense" [ariaLabel]="null" />
+      Retirer le fichier
+    </button>
+  }
+</div>

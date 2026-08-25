@@ -1,0 +1,230 @@
+<div class="page client-detail">
+  <a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminClients]" class="d-inline-flex align-items-center gap-1 mb-3 text-decoration-none">
+    <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="null" />
+    Retour aux clients
+  </a>
+
+  <app-data-state [loading]="loading()" [error]="error() && !detail() ? error() : null" [empty]="!detail()" emptyMessage="Client introuvable." variant="spinner">
+    @if (detail(); as detail) {
+      @if (error()) {
+        <div class="alert alert-danger" role="alert">
+          {{ error() }}
+          @if (error()?.toLowerCase()?.includes('cap')) {
+            <button type="button" class="btn btn-link btn-sm p-0 ms-2" (click)="goToCaps()">Ajuster les plafonds</button>
+          }
+        </div>
+      }
+
+      <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+          <h1 class="client-detail__title">{{ detail.Name }}</h1>
+          @if (detail.ContactName || detail.ContactEmail) {
+            <div class="text-muted">{{ detail.ContactName }} @if (detail.ContactEmail) { — {{ detail.ContactEmail }} }</div>
+          }
+          <div class="mt-2">
+            <span
+              class="badge"
+              [class.text-bg-success]="detail.Status === ClientStatusEnum.Active"
+              [class.text-bg-warning]="detail.Status === ClientStatusEnum.Suspended"
+              [class.text-bg-dark]="detail.Status === ClientStatusEnum.Archived"
+            >
+              {{ getStatusClientLabel(detail.Status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-start gap-2">
+          @if (detail.Status === ClientStatusEnum.Active) {
+            <button type="button" class="btn btn-outline-danger btn-sm" [appSubmitOnce]="suspendreAction">Suspendre</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" [appSubmitOnce]="archiveAction">Archiver</button>
+          }
+          @if (detail.Status === ClientStatusEnum.Suspended) {
+            <button type="button" class="btn btn-outline-success btn-sm" [appSubmitOnce]="reactivateAction">Réactiver</button>
+            <button type="button" class="btn btn-outline-dark btn-sm" [appSubmitOnce]="archiveAction">Archiver</button>
+          }
+        </div>
+      </div>
+
+      <nav class="nav nav-tabs mb-3" role="tablist" aria-label="Pupitres de la fiche client">
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'information'" (click)="selectTab('information')">
+          Informations
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'limits'" (click)="selectTab('limits')">
+          Plafonds
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'choirs'" (click)="selectTab('choirs')">
+          Chorales ({{ detail.ChoirCount }})
+        </button>
+        <button type="button" class="nav-link" role="tab" [class.active]="activeTab() === 'managers'" (click)="selectTab('managers')">
+          Responsables
+        </button>
+      </nav>
+
+      @switch (activeTab()) {
+        @case ('information') {
+          @if (!editingInformations()) {
+            <div class="mb-3">
+              <p class="text-muted small">Créé — voir l'audit pour l'historique complet.</p>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEditInformations()">
+                <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="'Modifier'" />
+                Modifier les informations
+              </button>
+            </div>
+          } @else {
+            <form [formGroup]="informationsForm" class="client-detail__form mb-4">
+              <app-form-field label="Nom" [required]="true">
+                <input type="text" class="form-control" formControlName="name" />
+              </app-form-field>
+              <app-form-field label="Contact — nom">
+                <input type="text" class="form-control" formControlName="contactName" />
+              </app-form-field>
+              <app-form-field label="Contact — email">
+                <input type="email" class="form-control" formControlName="contactEmail" />
+              </app-form-field>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" [appSubmitOnce]="submitInformations">Enregistrer</button>
+                <button type="button" class="btn btn-outline-secondary" (click)="cancelEditInformations()">Annuler</button>
+              </div>
+            </form>
+          }
+        }
+        @case ('limits') {
+          @if (!editingLimits()) {
+            <div class="row g-3 client-detail__plafonds mb-3">
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <h3 class="card-title h6">Chorales</h3>
+                    <p class="mb-1">{{ detail.ChoirCount }} / {{ detail.ChoirLimit }}</p>
+                    <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.ChoirCount, detail.ChoirLimit)" aria-valuemin="0" aria-valuemax="100">
+                      <div
+                        class="progress-bar"
+                        [class.bg-danger]="isUsageCritical(detail.ChoirCount, detail.ChoirLimit)"
+                        [style.width.%]="percentageUsage(detail.ChoirCount, detail.ChoirLimit)"
+                      ></div>
+                    </div>
+                    @if (isUsageCritical(detail.ChoirCount, detail.ChoirLimit)) {
+                      <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <h3 class="card-title h6">Membres</h3>
+                    <p class="mb-1">{{ detail.MemberCount }} / {{ detail.MemberLimit }}</p>
+                    <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.MemberCount, detail.MemberLimit)" aria-valuemin="0" aria-valuemax="100">
+                      <div
+                        class="progress-bar"
+                        [class.bg-danger]="isUsageCritical(detail.MemberCount, detail.MemberLimit)"
+                        [style.width.%]="percentageUsage(detail.MemberCount, detail.MemberLimit)"
+                      ></div>
+                    </div>
+                    @if (isUsageCritical(detail.MemberCount, detail.MemberLimit)) {
+                      <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <h3 class="card-title h6">Stockage</h3>
+                    <p class="mb-1">{{ formatBytes(detail.UsedStorageBytes) }} / {{ formatBytes(detail.StorageQuotaBytes) }}</p>
+                    <div class="progress" role="progressbar" [attr.aria-valuenow]="percentageUsage(detail.UsedStorageBytes, detail.StorageQuotaBytes)" aria-valuemin="0" aria-valuemax="100">
+                      <div
+                        class="progress-bar"
+                        [class.bg-danger]="isUsageCritical(detail.UsedStorageBytes, detail.StorageQuotaBytes)"
+                        [style.width.%]="percentageUsage(detail.UsedStorageBytes, detail.StorageQuotaBytes)"
+                      ></div>
+                    </div>
+                    @if (isUsageCritical(detail.UsedStorageBytes, detail.StorageQuotaBytes)) {
+                      <p class="text-danger small mt-1 mb-0">Plafond bientôt atteint.</p>
+                    }
+                    <p class="text-muted small mt-2 mb-0">Taille maximale par fichier : {{ formatBytes(detail.MaxFileSizeBytes) }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="startEditLimits()">
+              <app-icon [name]="IconNameEnum.Pencil" size="dense" [ariaLabel]="'Modifier'" />
+              Modifier les plafonds
+            </button>
+          } @else {
+            <form [formGroup]="limitsForm" class="client-detail__form mb-4">
+              <app-form-field label="Limite de chorales" [required]="true">
+                <input type="number" class="form-control" formControlName="limitChoirs" min="0" />
+              </app-form-field>
+              <app-form-field label="Limite de membres" [required]="true">
+                <input type="number" class="form-control" formControlName="limitMembers" min="0" />
+              </app-form-field>
+              <app-form-field label="Quota de stockage (Go)" [required]="true">
+                <input type="number" class="form-control" formControlName="quotaStorageGo" min="0" step="0.1" />
+              </app-form-field>
+              <app-form-field label="Taille maximale par fichier (Mo)" [required]="true">
+                <input type="number" class="form-control" formControlName="maxFileSizeMb" min="0" step="0.1" />
+              </app-form-field>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" [appSubmitOnce]="submitLimits">Enregistrer</button>
+                <button type="button" class="btn btn-outline-secondary" (click)="cancelEditLimits()">Annuler</button>
+              </div>
+            </form>
+          }
+        }
+        @case ('choirs') {
+          <app-data-table
+            [columns]="choirsColumns"
+            [items]="choirsItems()"
+            [totalCount]="choirsTotalCount()"
+            [page]="choirsPage()"
+            [pageSize]="10"
+            [sortActive]="choirsSortActive()"
+            [sortDirection]="choirsSortDirection()"
+            [loading]="choirsLoading()"
+            emptyMessage="Aucune chorale pour ce client."
+            noResultsMessage="Aucun résultat pour ce filtre."
+            (sortChange)="onChoirsSortChange($event)"
+            (pageChange)="onChoirsPageChange($event)"
+            (filterChange)="onChoirsFilterChange($event)"
+          />
+        }
+        @case ('managers') {
+          <div class="alert alert-info" role="note">
+            La liste des responsables actuels n'est pas exposée par ce contrat API (aucun
+            endpoint de lecture) — seules la désignation et le retrait sont possibles ici. Pour
+            retirer un responsable, renseignez son identifiant utilisateur (consultable depuis sa
+            fiche dans la zone Utilisateurs).
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <h3 class="h6">Désigner un responsable</h3>
+              <form [formGroup]="assignForm" class="client-detail__form">
+                @if (assignError()) {
+                  <div class="alert alert-danger" role="alert">{{ assignError() }}</div>
+                }
+                <app-form-field label="Email" [required]="true">
+                  <input type="email" class="form-control" formControlName="email" />
+                </app-form-field>
+                <button type="button" class="btn btn-primary btn-sm" [appSubmitOnce]="assignManager">Désigner</button>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <h3 class="h6">Retirer un responsable</h3>
+              <form [formGroup]="removeForm" class="client-detail__form">
+                @if (removeError()) {
+                  <div class="alert alert-danger" role="alert">{{ removeError() }}</div>
+                }
+                <app-form-field label="Identifiant utilisateur" [required]="true">
+                  <input type="text" class="form-control" formControlName="userId" />
+                </app-form-field>
+                <button type="button" class="btn btn-outline-danger btn-sm" [appSubmitOnce]="removeManager">Retirer</button>
+              </form>
+            </div>
+          </div>
+        }
+      }
+    }
+  </app-data-state>
+</div>

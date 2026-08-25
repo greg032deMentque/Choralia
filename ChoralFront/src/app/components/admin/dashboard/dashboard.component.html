@@ -1,0 +1,148 @@
+<div class="page admin-dashboard">
+  <app-page-header title="Tableau de bord" [breadcrumb]="[{ label: 'Administration' }, { label: 'Tableau de bord' }]" />
+
+  <!-- Bloc KPI : loading/error INDÉPENDANTS du bloc de purge ci-dessous (chargement partiel —
+       un échec de GetKpi n'efface jamais le bloc de purge, et réciproquement). -->
+  <app-data-state
+    [loading]="kpiLoading()"
+    [error]="kpiError()"
+    [empty]="false"
+    [skeletonRows]="4"
+    retryLabel="Réessayer"
+    (retry)="loadKpi()"
+  >
+    @if (anomalieTile(); as tile) {
+      <div class="admin-dashboard-anomalie" [class.admin-dashboard-anomalie--empty]="!tile.clickable">
+        <app-icon [name]="IconNameEnum.Warning" size="inline" [ariaLabel]="null" />
+        <button
+          type="button"
+          class="admin-dashboard-anomalie__btn"
+          [disabled]="!tile.clickable"
+          (click)="tile.onClick && tile.onClick()"
+        >
+          {{ tile.value }} — {{ tile.label }}
+        </button>
+      </div>
+    }
+
+    @for (section of sections(); track section.title) {
+      <section class="admin-dashboard__section">
+        <h2 class="admin-dashboard__section-title">{{ section.title }}</h2>
+        <div class="row g-3">
+          @for (tile of section.tiles; track tile.key) {
+            <div class="col-md-3 col-sm-6">
+              <button
+                type="button"
+                class="admin-dashboard-tile"
+                [class.admin-dashboard-tile--empty]="!tile.clickable"
+                [disabled]="!tile.clickable"
+                (click)="tile.onClick && tile.onClick()"
+              >
+                <span class="admin-dashboard-tile__value">{{ tile.displayValue }}</span>
+                <span class="admin-dashboard-tile__label">{{ tile.label }}</span>
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="admin-dashboard__section">
+      <h2 class="admin-dashboard__section-title">Suivi clients</h2>
+      <div class="row g-3">
+        <div class="col-md-3 col-sm-6">
+          <button
+            type="button"
+            class="admin-dashboard-tile"
+            [class.admin-dashboard-tile--empty]="clientsNonDemarresIds().length === 0"
+            [disabled]="clientsNonDemarresIds().length === 0"
+            (click)="toggleClientsPanel('non-demarres')"
+          >
+            <span class="admin-dashboard-tile__value">{{ clientsNonDemarresIds().length }}</span>
+            <span class="admin-dashboard-tile__label">Clients non démarrés</span>
+          </button>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <button
+            type="button"
+            class="admin-dashboard-tile"
+            [class.admin-dashboard-tile--empty]="clientsNearCapIds().length === 0"
+            [disabled]="clientsNearCapIds().length === 0"
+            (click)="toggleClientsPanel('proches-plafond')"
+          >
+            <span class="admin-dashboard-tile__value">{{ clientsNearCapIds().length }}</span>
+            <span class="admin-dashboard-tile__label">Clients proches d'un plafond</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Aucun filtre serveur possible ici (voir écart assumé, modèle IClientsNonDemarresKpi) :
+           seule la liste d'identifiants transmise par le KPI est exploitable — liens directs
+           vers chaque fiche client plutôt qu'une liste filtrée qui n'existe pas. -->
+      @if (expandedPanel() === 'non-demarres') {
+        <div class="admin-dashboard-panel">
+          <p class="admin-dashboard-panel__hint">
+            Identifiants uniquement (le KPI ne transmet pas les noms) — ouvrir la fiche pour identifier le client.
+          </p>
+          <ul class="admin-dashboard-panel__list">
+            @for (id of clientsNonDemarresIds(); track id) {
+              <li><a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminClients, id]">{{ id }}</a></li>
+            }
+          </ul>
+        </div>
+      }
+      @if (expandedPanel() === 'proches-plafond') {
+        <div class="admin-dashboard-panel">
+          <p class="admin-dashboard-panel__hint">
+            Identifiants uniquement (le KPI ne transmet pas les noms) — ouvrir la fiche pour identifier le client.
+          </p>
+          <ul class="admin-dashboard-panel__list">
+            @for (id of clientsNearCapIds(); track id) {
+              <li><a [routerLink]="['/', RoutePaths.Admin, RoutePaths.AdminClients, id]">{{ id }}</a></li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+
+    @if (storageTile(); as tile) {
+      <section class="admin-dashboard__section">
+        <h2 class="admin-dashboard__section-title">Stockage</h2>
+        <div class="admin-dashboard-tile admin-dashboard-tile--info admin-dashboard-tile--inline">
+          <span class="admin-dashboard-tile__value">{{ tile.displayValue }}</span>
+          <span class="admin-dashboard-tile__label">{{ tile.label }}</span>
+        </div>
+      </section>
+    }
+  </app-data-state>
+
+  <!-- Bloc de purge RGPD — indépendant du bloc KPI ci-dessus (voir dashboard.component.ts). -->
+  <section class="admin-dashboard-purge">
+    <h2 class="admin-dashboard__section-title">Purge RGPD — comptes invités inactifs</h2>
+
+    @if (purgePreviewError()) {
+      <div class="alert alert-danger" role="alert">{{ purgePreviewError() }}</div>
+    }
+
+    <div class="admin-dashboard-purge__actions">
+      <button type="button" class="btn btn-outline-primary" [disabled]="purgePreviewLoading()" (click)="previewPurge()">
+        @if (purgePreviewLoading()) {
+          Chargement…
+        } @else {
+          Aperçu des comptes concernés
+        }
+      </button>
+
+      @if (purgePreview(); as preview) {
+        <span class="admin-dashboard-purge__count">{{ preview.Count }} compte(s) invité(s) inactif(s) identifié(s)</span>
+        @if (preview.Count > 0) {
+          <button type="button" class="btn btn-danger" [appSubmitOnce]="purgeAction">Purger</button>
+        }
+      }
+    </div>
+
+    @if (purgeResult(); as result) {
+      <p class="admin-dashboard-purge__result">{{ result }} compte(s) réellement purgé(s).</p>
+    }
+  </section>
+</div>

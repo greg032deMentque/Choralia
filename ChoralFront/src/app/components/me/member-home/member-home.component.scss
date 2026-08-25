@@ -1,0 +1,107 @@
+.member-home {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.member-home__card {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  height: 100%;
+}
+
+.member-home__card--action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.member-home__card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--action-bg);
+  margin-bottom: var(--space-4);
+}
+
+.member-home__card-title {
+  font-size: var(--text-heading-2-size);
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.member-home__list {
+  margin: 0;
+
+  dt {
+    color: var(--text-muted);
+    font-size: var(--text-caption-size);
+  }
+
+  dd {
+    margin: 0 0 var(--space-3);
+    font-weight: var(--text-body-medium-weight);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.member-home__choirs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border-subtle);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+}
+
+.member-home__choir-name {
+  font-weight: var(--text-body-medium-weight);
+}
+
+.member-home__choir-voice {
+  color: var(--text-muted);
+  font-size: var(--text-caption-size);
+}
+
+.member-home__empty {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.member-home__event-title {
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-body-medium-weight);
+  margin: 0 0 var(--space-1);
+}
+
+.member-home__event-meta {
+  color: var(--text-muted);
+  margin: 0 0 var(--space-1);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .member-home__card--action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

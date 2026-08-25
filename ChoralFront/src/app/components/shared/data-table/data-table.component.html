@@ -1,0 +1,190 @@
+<div class="data-table">
+  @if (filterable() || filterPanel()) {
+    <div class="data-table__toolbar">
+      @if (filterable()) {
+        <input
+          type="search"
+          class="form-control data-table__search"
+          placeholder="Rechercher..."
+          aria-label="Rechercher dans la liste"
+          [value]="filterText()"
+          (input)="onFilterInput($any($event.target).value)"
+        />
+      }
+
+      @if (filterPanel()) {
+        <button
+          type="button"
+          class="btn btn-outline-secondary data-table__filter-toggle"
+          (click)="toggleFilterPanel()"
+          [attr.aria-expanded]="filterPanelOpen()"
+          aria-controls="data-table-filter-panel"
+        >
+          <app-icon [name]="IconNameEnum.Funnel" size="dense" />
+          Filtrer
+          @if (activeFilters().length > 0) {
+            <span class="data-table__filter-count">{{ activeFilters().length }}</span>
+          }
+        </button>
+      }
+
+      <!-- Tri du rendu carte : sous 768 px l'en-tête de colonne disparaît avec le tableau,
+           le tri doit rester atteignable autrement. -->
+      @if (sortableColumns().length > 0) {
+        <div class="data-table__mobile-sort">
+          <label class="visually-hidden" for="data-table-sort">Trier par</label>
+          <select
+            id="data-table-sort"
+            class="form-select"
+            [value]="sortActive() ?? ''"
+            (change)="onSortKeyChange($any($event.target).value)"
+          >
+            <option value="" disabled>Trier par…</option>
+            @for (column of sortableColumns(); track column.key) {
+              <option [value]="column.key" [selected]="sortActive() === column.key">{{ column.label }}</option>
+            }
+          </select>
+          <!-- Pas d'icône « caret-up » dans le catalogue (12-catalogue-icones.md) : le sens
+               ascendant est rendu par une rotation du caret, pas par un SVG ajouté hors
+               catalogue. -->
+          <button
+            type="button"
+            class="btn-icon data-table__sort-direction"
+            [class.data-table__sort-direction--asc]="sortDirection() !== 'desc'"
+            (click)="toggleSortDirection()"
+            [attr.aria-label]="sortDirection() === 'desc' ? 'Trier par ordre croissant' : 'Trier par ordre décroissant'"
+          >
+            <app-icon [name]="IconNameEnum.CaretDown" size="dense" />
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  @if (filterPanel() && filterPanelOpen()) {
+    <div class="data-table__filter-panel" id="data-table-filter-panel">
+      <ng-content select="[data-table-filters]" />
+    </div>
+  }
+
+  @if (activeFilters().length > 0) {
+    <ul class="data-table__chips" aria-label="Filtres actifs">
+      @for (chip of activeFilters(); track chip.key) {
+        <li>
+          <button
+            type="button"
+            class="data-table__chip"
+            (click)="onFilterRemove(chip.key)"
+            [attr.aria-label]="'Retirer le filtre ' + chip.label"
+          >
+            {{ chip.label }}
+            <app-icon [name]="IconNameEnum.X" size="dense" />
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="items().length === 0"
+    [emptyMessage]="emptyMessageResolved()"
+    [emptyIcon]="emptyIconResolved()"
+    [emptyActionLabel]="emptyActionLabelResolved()"
+    [retryLabel]="retryLabel()"
+    (emptyAction)="onEmptyAction()"
+    (retry)="onRetry()"
+  >
+    <div class="table-responsive table-cards-wrapper">
+      <table class="table table-hover align-middle data-table__table table-cards">
+        <thead>
+          <tr>
+            @for (col of columns(); track col.key) {
+              @if (col.sortable) {
+                <th
+                  role="button"
+                  tabindex="0"
+                  [class.cell--hide-mobile]="col.hideOnMobile"
+                  [attr.aria-sort]="sortActive() === col.key ? (sortDirection() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                  (click)="onSort(col)"
+                  (keydown.enter)="onSort(col)"
+                >
+                  {{ col.label }}
+                  @if (sortActive() === col.key) {
+                    <span class="data-table__sort-icon" aria-hidden="true">{{ sortDirection() === 'asc' ? '▲' : '▼' }}</span>
+                  }
+                </th>
+              } @else {
+                <th [class.cell--hide-mobile]="col.hideOnMobile">{{ col.label }}</th>
+              }
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (renderRow of renderRows(); track $index) {
+            @if (renderRow.kind === 'group-header') {
+              <!-- En-tête de groupe (Spec) : une seule cellule sur toute la largeur, autant en
+                   rendu tableau qu'en rendu carte (voir data-table.component.scss). -->
+              <tr class="data-table__group-header">
+                <td [attr.colspan]="columns().length" class="data-table__group-header-cell">
+                  {{ renderRow.label }}
+                  <span class="data-table__group-count">({{ renderRow.count }})</span>
+                </td>
+              </tr>
+            } @else {
+              <tr
+                class="data-table__row"
+                [class.data-table__row--clickable]="rowClickable()"
+                [attr.role]="rowClickable() ? 'button' : null"
+                [attr.tabindex]="rowClickable() ? 0 : null"
+                (click)="onRowClick(renderRow.item)"
+                (keydown.enter)="onRowClick(renderRow.item)"
+              >
+                @for (col of columns(); track col.key) {
+                  <!-- `data-label` alimente le rendu carte : en dessous de 768 px, la cellule
+                       affiche son libellé de colonne, l'en-tête du tableau étant masqué. -->
+                  <td [attr.data-label]="col.label" [class.cell--hide-mobile]="col.hideOnMobile">
+                    @if (col.cellTemplate) {
+                      <ng-container *ngTemplateOutlet="col.cellTemplate; context: { $implicit: renderRow.item }" />
+                    } @else {
+                      {{ getCellValue(renderRow.item, col.key) }}
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1 || pageSizeSelectable()) {
+      <div class="data-table__footer">
+        @if (pageSizeSelectable()) {
+          <div class="data-table__page-size">
+            <label for="data-table-page-size">Lignes par page</label>
+            <select
+              id="data-table-page-size"
+              class="form-select"
+              [value]="pageSize()"
+              (change)="onPageSizeChange($any($event.target).value)"
+            >
+              @for (size of pageSizeOptions(); track size) {
+                <option [value]="size" [selected]="pageSize() === size">{{ size }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <app-pagination
+  [page]="page()"
+  [totalPages]="totalPages()"
+  [totalCount]="totalCount()"
+  ariaLabel="Pagination du tableau"
+  (pageChange)="goToPage($event)"
+/>
+      </div>
+    }
+  </app-data-state>
+</div>

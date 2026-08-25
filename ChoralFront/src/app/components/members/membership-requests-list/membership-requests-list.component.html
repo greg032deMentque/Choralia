@@ -1,0 +1,71 @@
+<div class="membership-requests-list">
+  <div class="membership-requests-list__code-panel">
+    <button type="button" class="btn btn-link p-0" (click)="toggleCodePanel()" [attr.aria-expanded]="showCodePanel()">
+      Gérer le code de rattachement
+    </button>
+    @if (showCodePanel() && authStore.activeSpaceId(); as spaceId) {
+      <app-join-code-panel [spaceId]="spaceId" />
+    }
+  </div>
+
+  @if (capAtteint()) {
+    <div class="alert alert-warning" role="alert" aria-live="assertive">
+      Le pupitre choisi est déjà au plafond pour cette voix. La demande reste en attente — vous
+      pouvez toujours la refuser, ou choisir une autre voix pour l'admettre.
+    </div>
+  }
+
+  <app-data-state [loading]="loading()" [error]="error()" [empty]="itemsTries().length === 0" emptyMessage="Aucune demande d'adhésion.">
+    <div class="membership-requests-list__items">
+      @for (request of itemsTries(); track request.Id) {
+        <div class="membership-requests-list__card">
+          <div class="membership-requests-list__info">
+            <p class="membership-requests-list__nom">{{ request.UserFullName }}</p>
+            <p class="membership-requests-list__email">{{ request.UserEmail }}</p>
+            <p class="membership-requests-list__anciennete">{{ ancienneteLabel(request.CreatedAt) }}</p>
+            @if (request.Message) {
+              <p class="membership-requests-list__message">« {{ request.Message }} »</p>
+            }
+          </div>
+
+          @if (request.Status === MembershipRequestStatusEnum.Pending) {
+            <div class="membership-requests-list__actions">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                [disabled]="refusingRequestId() === request.Id"
+                (click)="decline(request)"
+              >
+                Refuser
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                [disabled]="capAtteint()"
+                [attr.title]="capAtteint() ? 'Pupitre au plafond pour la voix concernée' : null"
+                (click)="openApproval(request)"
+              >
+                Admettre
+              </button>
+            </div>
+          } @else {
+            <span class="badge text-bg-light">{{ getStatusMembershipRequestLabel(request.Status) }}</span>
+          }
+        </div>
+      }
+    </div>
+  </app-data-state>
+
+  <p class="membership-requests-list__footnote">
+    Ces personnes n'ont accès à rien tant qu'elles ne sont pas admises.
+  </p>
+
+  @if (admettingRequest(); as request) {
+    <app-approve-request-modal
+      [request]="request"
+      [isSubmitting]="isSubmittingApproval()"
+      (confirmed)="confirmApproval($event)"
+      (cancelled)="closeApproval()"
+    />
+  }
+</div>

@@ -1,0 +1,17 @@
+.choir-detail {
+  padding: var(--space-4);
+}
+
+.choir-detail__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  margin: 0;
+}
+
+.choir-detail__form {
+  max-width: 480px;
+}
+
+.choir-detail__plafonds .card-title {
+  margin-bottom: var(--space-2);
+}

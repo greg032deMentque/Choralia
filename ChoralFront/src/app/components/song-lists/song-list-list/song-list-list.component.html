@@ -1,0 +1,80 @@
+<div class="page song-list-list">
+  <app-page-header title="Listes de chants">
+    @if (canManage()) {
+      <button type="button" class="btn btn-primary" (click)="openCreateForm()">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter une liste
+      </button>
+    }
+  </app-page-header>
+
+  @if (showForm()) {
+    <div class="mb-4">
+      <app-song-list-form [songList]="editingSongList()" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
+    </div>
+  }
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [pageSizeSelectable]="true"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    [emptyIcon]="IconNameEnum.List"
+    [emptyActionLabel]="canManage() ? 'Ajouter une liste' : null"
+    emptyMessage="Aucune liste de chants pour le moment."
+    noResultsMessage="Aucune liste ne correspond à cette recherche."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterTextChange($event)"
+    (rowClick)="openSongList($event)"
+    (emptyAction)="openCreateForm()"
+  />
+</div>
+
+<ng-template #tplName let-songList>
+  <a
+    [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.SongLists, songList.Id]"
+    (click)="$event.stopPropagation()"
+    >{{ songList.Name }}</a
+  >
+</ng-template>
+
+<ng-template #tplType let-songList>
+  {{ getTypeListLabel(songList.Type) }}
+</ng-template>
+
+<ng-template #tplStatus let-songList>
+  <span
+    class="status-badge"
+    [class.status-badge--draft]="songList.Status === SongListStatusEnum.Draft"
+    [class.status-badge--published]="songList.Status === SongListStatusEnum.Published"
+    [class.status-badge--archived]="songList.Status === SongListStatusEnum.Archived"
+  >
+    {{ getStatusListLabel(songList.Status) }}
+  </span>
+</ng-template>
+
+<ng-template #tplSongCount let-songList>
+  {{ songList.Songs.length }}
+</ng-template>
+
+<ng-template #tplActions let-songList>
+  @if (canManage()) {
+    <div class="song-list-list__actions">
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); openEditForm(songList)" aria-label="Modifier">
+        <app-icon [name]="IconNameEnum.Pencil" size="dense" />
+      </button>
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); deleteSongList(songList)" aria-label="Supprimer">
+        <app-icon [name]="IconNameEnum.Trash" size="dense" />
+      </button>
+    </div>
+  }
+</ng-template>

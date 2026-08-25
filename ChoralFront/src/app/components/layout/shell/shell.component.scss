@@ -1,0 +1,35 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+// Le gabarit (largeur max, marges) est porté par `.page` (styles.scss), pas ici : le contenu
+// injecté par le router-outlet doit pouvoir déborder en pleine largeur quand il le décide
+// (bandeau, en-tête illustré), ce qu'une contrainte posée sur le conteneur interdirait.
+.shell__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.shell__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__backdrop {
+  display: none;
+}
+
+// Sous 1024 px, la barre latérale de 256 px prendrait le tiers de l'écran : elle passe en
+// tiroir superposé, ouvert depuis la topbar.
+@media (max-width: 1023px) {
+  .shell__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background-color: var(--overlay);
+  }
+}

@@ -1,0 +1,50 @@
+<div class="registration-confirm-page">
+  <div class="registration-confirm-card">
+    <div class="registration-confirm-card__brand">
+      <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+      <span class="registration-confirm-card__brand-name">Choralia</span>
+    </div>
+
+    <div class="alert alert-info" role="status" aria-live="polite">
+      Si un compte peut être créé pour cette adresse, un message vient d'y être envoyé.
+      Le lien est valable 24 heures.
+    </div>
+
+    @if (resent()) {
+      <div class="alert alert-success" role="status" aria-live="polite">Message renvoyé.</div>
+    }
+
+    @if (email()) {
+      <p class="registration-confirm-card__email">{{ email() }}</p>
+      <button type="button" class="btn btn-outline-primary w-100 mb-3" [appSubmitOnce]="resendKnownEmail">
+        Renvoyer le message
+      </button>
+    } @else {
+      <p class="registration-confirm-card__hint">
+        Pour renvoyer le message, indiquez à nouveau votre adresse email.
+      </p>
+      <form [formGroup]="fallbackForm" (ngSubmit)="submitFallback()" novalidate class="mb-3">
+        <div class="mb-2">
+          <label for="fallback-email" class="form-label">Email</label>
+          <input
+            id="fallback-email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+            autocomplete="email"
+            [class.is-invalid]="fallbackForm.controls.email.invalid && fallbackForm.controls.email.touched"
+          />
+          @if (fallbackForm.controls.email.invalid && fallbackForm.controls.email.touched) {
+            <div class="invalid-feedback">Email invalide — vérifiez le format.</div>
+          }
+        </div>
+        <button type="submit" class="btn btn-outline-primary w-100">Renvoyer le message</button>
+      </form>
+    }
+
+    <a [routerLink]="'/' + RoutePaths.Registration" class="registration-confirm-card__link">
+      <app-icon [name]="IconNameEnum.ArrowLeft" size="dense" [ariaLabel]="'Retour'" />
+      Modifier l'email
+    </a>
+  </div>
+</div>

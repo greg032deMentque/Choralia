@@ -1,0 +1,51 @@
+.create-choir-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.create-choir-page__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  margin-bottom: var(--space-4);
+}
+
+.create-choir-page__existe-deja {
+  font-size: var(--text-caption-size);
+  margin-bottom: var(--space-4);
+}
+
+.create-choir-page__consequences {
+  background-color: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.create-choir-page__consequences-title {
+  font-size: var(--text-heading-2-size);
+  margin: 0 0 var(--space-2);
+}
+
+.create-choir-blocked {
+  max-width: 480px;
+  margin: var(--space-8) auto;
+  text-align: center;
+  color: var(--color-warning);
+}
+
+.create-choir-blocked__title {
+  font-size: var(--text-heading-1-size);
+  color: var(--color-neutral-900);
+  margin: var(--space-2) 0;
+}
+
+.create-choir-blocked__text {
+  color: var(--color-neutral-600);
+  margin-bottom: var(--space-4);
+}
+
+.create-choir-blocked__back-link {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: var(--text-caption-size);
+}

@@ -1,0 +1,46 @@
+// L'hôte <app-icon> est `display: inline` par défaut : c'est LUI qui devient l'élément flex
+// d'un bouton ou d'une barre de navigation, pas le span interne. Sans cette règle, le parent
+// centre une boîte de la hauteur d'une ligne de texte, et l'icône se retrouve décalée d'un
+// pixel vers le bas — le défaut visible sur le bouton « afficher le mot de passe ».
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+
+  // Sans cela, la boîte inline-flex se pose sur la ligne de base du texte et l'icône
+  // remonte de la hauteur des jambages — visible dès qu'elle est seule dans un bouton.
+  // Le centrage réel dans un bouton reste porté par `.btn-icon` (styles.scss).
+  vertical-align: middle;
+
+  ::ng-deep svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+  }
+
+  &--nav {
+    width: 24px;
+    height: 24px;
+  }
+
+  &--inline {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--dense {
+    width: 16px;
+    height: 16px;
+  }
+
+  &--empty-state {
+    width: 48px;
+    height: 48px;
+  }
+}

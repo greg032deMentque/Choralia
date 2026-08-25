@@ -1,0 +1,48 @@
+.song-instructions {
+  margin-top: var(--space-6);
+}
+
+.song-instructions__title {
+  font-size: var(--text-heading-2-size);
+  font-weight: var(--text-heading-2-weight);
+  margin: 0;
+}
+
+.song-instructions__form {
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background-color: var(--color-neutral-50);
+}
+
+.song-instructions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.song-instructions__item {
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+}
+
+.song-instructions__item-title {
+  font-weight: 600;
+}
+
+// Le contenu est rendu par interpolation : c'est cette règle, et non du HTML injecté, qui
+// restitue les retours à la ligne de la saisie.
+.song-instructions__content {
+  white-space: pre-wrap;
+  margin: var(--space-3) 0 0;
+}
+
+.song-instructions__meta {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-caption-size);
+}

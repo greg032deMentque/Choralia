@@ -1,0 +1,18 @@
+.my-structure {
+  padding: var(--space-4);
+}
+
+.my-structure__title {
+  font-size: var(--text-heading-1-size);
+  font-weight: var(--text-heading-1-weight);
+  display: inline-block;
+  margin-right: var(--space-2);
+}
+
+.my-structure__form {
+  max-width: 480px;
+}
+
+.my-structure__plafonds .card-title {
+  margin-bottom: var(--space-2);
+}

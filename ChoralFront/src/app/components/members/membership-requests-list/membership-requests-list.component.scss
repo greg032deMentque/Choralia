@@ -1,0 +1,53 @@
+.membership-requests-list__code-panel {
+  margin-bottom: var(--space-4);
+
+  button {
+    font-weight: var(--text-body-medium-weight);
+  }
+}
+
+.membership-requests-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.membership-requests-list__card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.membership-requests-list__nom {
+  font-weight: var(--text-body-medium-weight);
+  margin: 0;
+}
+
+.membership-requests-list__email,
+.membership-requests-list__anciennete {
+  color: var(--color-neutral-600);
+  font-size: var(--text-caption-size);
+  margin: 0;
+}
+
+.membership-requests-list__message {
+  font-style: italic;
+  margin: var(--space-1) 0 0;
+}
+
+.membership-requests-list__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.membership-requests-list__footnote {
+  color: var(--color-neutral-600);
+  font-size: var(--text-caption-size);
+  margin-top: var(--space-3);
+}

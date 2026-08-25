@@ -1,0 +1,18 @@
+<div class="form-field">
+  <label [for]="fieldId" class="form-field__label">
+    {{ label() }}
+    @if (required()) {
+      <span class="form-field__required" aria-hidden="true">*</span>
+    }
+  </label>
+
+  <div class="form-field__control">
+    <ng-content />
+  </div>
+
+  @if (hasError) {
+    <p [id]="fieldId + '-error'" class="form-field__error" role="alert">{{ errorMessageValue }}</p>
+  } @else if (warning()) {
+    <p [id]="fieldId + '-warning'" class="form-field__warning">{{ warning() }}</p>
+  }
+</div>

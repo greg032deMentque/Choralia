@@ -1,0 +1,72 @@
+<div class="activate-account-page">
+  <div class="activate-account-card">
+    <div class="activate-account-card__brand">
+      <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+      <span class="activate-account-card__brand-name">Choralia</span>
+    </div>
+
+    @if (!hasValidParams()) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">
+        Ce lien d'activation est invalide ou incomplet. Demandez une nouvelle invitation au
+        responsable de votre chorale.
+      </div>
+      <a [routerLink]="'/' + RoutePaths.Login" class="btn btn-primary w-100">Retour à la connexion</a>
+    } @else if (submitted()) {
+      <div class="alert alert-success" role="status" aria-live="polite">
+        Votre compte est activé. Vous pouvez maintenant vous connecter.
+      </div>
+      <a [routerLink]="'/' + RoutePaths.Login" class="btn btn-primary w-100">Se connecter</a>
+    } @else {
+      <h1 class="activate-account-card__title">Activer votre compte</h1>
+      <p class="activate-account-card__subtitle">
+        Choisissez votre mot de passe pour rejoindre votre chorale sur Choralia.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="mb-3">
+          <label for="newPassword" class="form-label">Mot de passe</label>
+          <input
+            id="newPassword"
+            type="password"
+            class="form-control"
+            formControlName="newPassword"
+            autocomplete="new-password"
+            [class.is-invalid]="form.controls.newPassword.invalid && form.controls.newPassword.touched"
+          />
+          @if (form.controls.newPassword.invalid && form.controls.newPassword.touched) {
+            <div class="invalid-feedback">
+              Le mot de passe doit contenir au moins 8 caractères, avec une majuscule, une
+              minuscule, un chiffre et un caractère spécial.
+            </div>
+          }
+        </div>
+
+        <div class="mb-4">
+          <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            class="form-control"
+            formControlName="confirmPassword"
+            autocomplete="new-password"
+            [class.is-invalid]="form.errors?.['passwordsMismatch'] && form.controls.confirmPassword.touched"
+          />
+          @if (form.errors?.['passwordsMismatch'] && form.controls.confirmPassword.touched) {
+            <div class="invalid-feedback">Les mots de passe ne correspondent pas.</div>
+          }
+        </div>
+
+        @if (error()) {
+          <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+        }
+
+        <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          }
+          Activer mon compte
+        </button>
+      </form>
+    }
+  </div>
+</div>

@@ -1,0 +1,106 @@
+<div class="registration-page">
+  <div class="registration-card">
+    <div class="registration-card__brand">
+      <app-icon [name]="IconNameEnum.MusicNotes" size="nav" [ariaLabel]="'Choralia'" />
+      <span class="registration-card__brand-name">Choralia</span>
+    </div>
+
+    <h1 class="registration-card__title">Créer un compte</h1>
+    <p class="registration-card__subtitle">Rejoignez ou créez une chorale en quelques instants.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="registration-form" novalidate>
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label for="firstname" class="form-label">Prénom</label>
+          <input
+            id="firstname"
+            type="text"
+            class="form-control"
+            formControlName="firstname"
+            autocomplete="given-name"
+            [class.is-invalid]="form.controls.firstname.invalid && form.controls.firstname.touched"
+          />
+          @if (form.controls.firstname.invalid && form.controls.firstname.touched) {
+            <div class="invalid-feedback">Le prénom est obligatoire.</div>
+          }
+        </div>
+        <div class="col-sm-6">
+          <label for="lastname" class="form-label">Nom</label>
+          <input
+            id="lastname"
+            type="text"
+            class="form-control"
+            formControlName="lastname"
+            autocomplete="family-name"
+            [class.is-invalid]="form.controls.lastname.invalid && form.controls.lastname.touched"
+          />
+          @if (form.controls.lastname.invalid && form.controls.lastname.touched) {
+            <div class="invalid-feedback">Le nom est obligatoire.</div>
+          }
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          class="form-control"
+          formControlName="email"
+          autocomplete="email"
+          [class.is-invalid]="form.controls.email.invalid && form.controls.email.touched"
+        />
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          <div class="invalid-feedback">Email invalide — vérifiez le format.</div>
+        }
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Mot de passe</label>
+        <div class="input-group">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            autocomplete="new-password"
+            [class.is-invalid]="form.controls.password.invalid && form.controls.password.touched"
+          />
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword() ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+          >
+            <app-icon [name]="showPassword() ? IconNameEnum.EyeSlash : IconNameEnum.Eye" size="inline" />
+          </button>
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <div class="invalid-feedback">
+              8 caractères minimum, avec majuscule, minuscule, chiffre et caractère spécial.
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-danger" role="alert" aria-live="assertive">{{ error() }}</div>
+      }
+
+      <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting()">
+        @if (isSubmitting()) {
+          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+        }
+        Créer mon compte
+      </button>
+    </form>
+
+    <div class="registration-card__links">
+      <a [routerLink]="'/' + RoutePaths.Join" class="registration-card__secondary-link">
+        J'ai un code de rattachement
+      </a>
+      <a [routerLink]="'/' + RoutePaths.Login" class="registration-card__secondary-link">
+        Déjà un compte ? Se connecter
+      </a>
+    </div>
+  </div>
+</div>

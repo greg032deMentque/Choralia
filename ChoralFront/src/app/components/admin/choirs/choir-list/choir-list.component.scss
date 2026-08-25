@@ -1,0 +1,8 @@
+// Le gabarit de page (largeur max, marges) vient de `.page` (styles.scss) — ne pas
+// redéclarer de padding ici, il s'ajouterait à celui de la page.
+
+.choir-list__filter-error {
+  margin-top: var(--space-1);
+  font-size: var(--text-caption-size);
+  color: var(--state-error);
+}

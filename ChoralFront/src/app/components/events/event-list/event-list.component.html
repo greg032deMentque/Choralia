@@ -1,0 +1,85 @@
+<div class="page event-list">
+  <app-page-header title="Événements">
+    @if (canManage()) {
+      <button type="button" class="btn btn-primary" (click)="openCreateForm()">
+        <app-icon [name]="IconNameEnum.Plus" size="dense" [ariaLabel]="null" />
+        Ajouter un événement
+      </button>
+    }
+  </app-page-header>
+
+  @if (showForm()) {
+    <div class="mb-4">
+      <app-event-form [evt]="editingEvent()" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
+    </div>
+  }
+
+  <app-data-table
+    [columns]="columns()"
+    [items]="items()"
+    [totalCount]="totalCount()"
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [pageSizeSelectable]="true"
+    [sortActive]="sortActive()"
+    [sortDirection]="sortDirection()"
+    [loading]="loading()"
+    [error]="error()"
+    [rowClickable]="true"
+    [emptyIcon]="IconNameEnum.Calendar"
+    [emptyActionLabel]="canManage() ? 'Ajouter un événement' : null"
+    emptyMessage="Aucun événement programmé pour le moment."
+    noResultsMessage="Aucun événement ne correspond à cette recherche."
+    (sortChange)="onSortChange($event)"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+    (filterChange)="onFilterTextChange($event)"
+    (rowClick)="openEvent($event)"
+    (emptyAction)="openCreateForm()"
+  />
+</div>
+
+<ng-template #tplTitle let-evt>
+  <a
+    [routerLink]="['/' + RoutePaths.Management, spaceId(), RoutePaths.Events, evt.Id]"
+    (click)="$event.stopPropagation()"
+    >{{ evt.Title }}</a
+  >
+</ng-template>
+
+<ng-template #tplType let-evt>
+  {{ getEventTypeLabel(evt.Type) }}
+</ng-template>
+
+<ng-template #tplStartDate let-evt>
+  {{ evt.StartDate | date: 'EEE d MMM y, HH:mm' }}
+</ng-template>
+
+<ng-template #tplEndDate let-evt>
+  {{ evt.EndDate ? (evt.EndDate | date: 'EEE d MMM y, HH:mm') : '—' }}
+</ng-template>
+
+<ng-template #tplState let-evt>
+  <span
+    class="status-badge"
+    [class.status-badge--draft]="evt.EffectiveState === EventEffectiveStateEnum.Draft"
+    [class.status-badge--published]="evt.EffectiveState === EventEffectiveStateEnum.Published"
+    [class.status-badge--cancelled]="evt.EffectiveState === EventEffectiveStateEnum.Cancelled"
+    [class.status-badge--archived]="evt.EffectiveState === EventEffectiveStateEnum.Archived"
+  >
+    {{ getEventEffectiveStateLabel(evt.EffectiveState) }}
+  </span>
+</ng-template>
+
+<ng-template #tplActions let-evt>
+  @if (canManage()) {
+    <div class="event-list__actions">
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); openEditForm(evt)" aria-label="Modifier">
+        <app-icon [name]="IconNameEnum.Pencil" size="dense" />
+      </button>
+      <button type="button" class="btn-icon" (click)="$event.stopPropagation(); deleteEvent(evt)" aria-label="Supprimer">
+        <app-icon [name]="IconNameEnum.Trash" size="dense" />
+      </button>
+    </div>
+  }
+</ng-template>
